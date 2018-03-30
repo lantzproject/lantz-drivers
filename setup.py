@@ -27,7 +27,7 @@ companies = [path for path in paths
              and os.path.exists(os.path.join(folder, path, '__init__.py'))]
 
 
-setup(name='Lantz-drivers',
+setup(name='lantz_drivers',
       version='0.5.dev0',
       license='BSD',
       description='Instrumentation framework',
