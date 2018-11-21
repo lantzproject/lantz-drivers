@@ -39,7 +39,7 @@ class Cobolt0601(MessageBasedDriver):
         ans = self.query('gsn?')[1:]
         wavel = ans[:3]
         sn = ans[3:]
-        return 'Cobolt ' + wavel + 'nm 06-01 Series, serial number ' + sn
+        return dict(manufacturer='COBOLT', model='06-01 Series', serialno=sn, softno='N/A', wavelength=wavel)
 
     def initialize(self):
         super().initialize()

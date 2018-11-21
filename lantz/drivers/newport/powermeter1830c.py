@@ -11,11 +11,14 @@
     Source: Instruction Manual (Newport)
 """
 
+import enum
+
 from pyvisa import constants
 
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.messagebased import MessageBasedDriver
+from lantz.core.messagebased import MessageBasedDriver
+from lantz.core.mfeats import BoolFeat, EnumFeat
 
 
 class PowerMeter1830c(MessageBasedDriver):
@@ -32,57 +35,34 @@ class PowerMeter1830c(MessageBasedDriver):
                          'timeout': 2000
                         }}
 
+    DRIVER_TRUE = '1'
 
-    @Feat(values={True: 1, False: 0})
-    def attenuator(self):
-        """ Attenuator. 
-            1: Attenuator present
-            0: Attenuator not present
-        """
-        return int(self.query('A?'))
-    
-    @attenuator.setter
-    def attenuator(self, value):
-        self.send('A{}'.format(value))
-        
-    @Feat(values={True: 1, False: 0})
-    def beeper(self):
-        """ Checks whether the audio output is on or off.
-        """
-        return int(self.query('B?'))
-    
-    @beeper.setter
-    def beeper(self,value):
-        self.send('B{}'.format(value))
-        
+    DRIVER_FALSE = '0'
+
+    #: Status of the attenuator
+    attenuator_present = BoolFeat('A?', 'A{}')
+
+    #: Audio output is on or off
+    beeper_enabled = BoolFeat('B?', 'B{}')
+
     @Feat
     def data(self):
         """ Retrieves the value from the power meter.
         """        
         return float(self.query('D?'))
-    
-    @Feat(values={True: 1, False: 0})
-    def echo(self):
-        """ Returns echo mode. Only applied to RS232 communication
-        """
-        return int(self.query('E?'))
-    
-    @echo.setter
-    def echo(self,value):
-        self.send('E{}'.format(value))
-        
-    @Feat(values={'Slow': 1, 'Medium': 2, 'Fast': 3})
-    def filter(self):
-        """ How many measurements are averaged for the displayed reading.
-            slow: 16 measurements
-            medium: 4 measurements
-            fast: 1 measurement. 
-        """
-        return int(self.query('F?'))
-    
-    @filter.setter
-    def filter(self,value):
-        self.send('F{}'.format(value))
+
+    #: Echo enabled. Only applied to RS232 communication
+    echo_enabled = BoolFeat('E?', 'E{}')
+
+    class Averaging:
+        SAMPLES_01 = 1
+        SAMPLES_04 = 2
+        SAMPLES_16 = 3
+
+    #: Averaging mode / filter
+    averaging_mode = EnumFeat('F?', 'F{}', Averaging)
+
+    #:
         
     @Feat(values={True: 1, False: 0})
     def go(self):

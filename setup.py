@@ -20,14 +20,14 @@ __doc__ = long_description
 root_folder = os.path.dirname(os.path.abspath(__file__))
 
 # Compile a list of companies with drivers.
-folder = os.path.join(root_folder, 'lantz_drivers')
+folder = os.path.join(root_folder, 'lantz', 'drivers')
 paths = os.listdir(folder)
 companies = [path for path in paths
              if os.path.isdir(os.path.join(folder, path))
              and os.path.exists(os.path.join(folder, path, '__init__.py'))]
 
 
-setup(name='lantz_drivers',
+setup(name='lantz-drivers',
       version='0.5.dev0',
       license='BSD',
       description='Instrumentation framework',
@@ -36,8 +36,8 @@ setup(name='lantz_drivers',
       author='Hernan E. Grecco',
       author_email='hernan.grecco@gmail.com',
       url='https://github.com/lantzproject',
-      packages=['lantz_drivers.' + company for company in companies],
-      install_requires=['lantz_core>=0.5.dev0',
+      packages=['lantz.drivers'] + ['lantz.drivers.' + company for company in companies],
+      install_requires=['lantz-core>=0.5.dev0',
                         ],
       zip_safe=False,
       platforms='any',
