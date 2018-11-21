@@ -28,7 +28,7 @@ companies = [path for path in paths
 
 
 setup(name='lantz-drivers',
-      version='0.5.dev0',
+      version='0.5.dev1',
       license='BSD',
       description='Instrumentation framework',
       long_description=long_description,
@@ -37,7 +37,7 @@ setup(name='lantz-drivers',
       author_email='hernan.grecco@gmail.com',
       url='https://github.com/lantzproject',
       packages=['lantz.drivers'] + ['lantz.drivers.' + company for company in companies],
-      install_requires=['lantz-core>=0.5.dev0',
+      install_requires=['lantz-core>=0.5.dev1',
                         ],
       zip_safe=False,
       platforms='any',
