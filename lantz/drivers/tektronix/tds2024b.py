@@ -15,7 +15,7 @@ import numpy as np
 
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 class TDS2024(MessageBasedDriver):

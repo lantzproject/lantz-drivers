@@ -10,7 +10,7 @@
 from pyvisa import constants
 
 from lantz import Action, Feat
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 class VFL(MessageBasedDriver):

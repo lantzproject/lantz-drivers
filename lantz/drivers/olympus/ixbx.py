@@ -26,7 +26,7 @@ from pyvisa import constants
 
 from lantz import Feat, Action, Q_
 from lantz import errors
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 # Physical units used by the IX/BX microscopes
 DECIVOLT = Q_(0.1, 'V')

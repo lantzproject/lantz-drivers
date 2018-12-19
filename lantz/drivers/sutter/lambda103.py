@@ -14,7 +14,7 @@
 """
 
 from lantz import Feat, DictFeat, Action
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 def logged(func):

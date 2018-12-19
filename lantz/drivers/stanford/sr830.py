@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 import numpy as np
 from lantz import Action, Feat, DictFeat, ureg
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 SENS = OrderedDict([

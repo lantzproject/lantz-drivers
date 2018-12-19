@@ -29,7 +29,7 @@
 
 from lantz import Feat, Action
 from lantz import errors
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 def between(s, before, after):
     ndx1 = s.index(before)

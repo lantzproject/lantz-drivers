@@ -27,7 +27,7 @@ from pyvisa import constants
 from lantz import Feat, DictFeat, Action
 from lantz.errors import InvalidCommand
 
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 def make_feat(command, **kwargs):

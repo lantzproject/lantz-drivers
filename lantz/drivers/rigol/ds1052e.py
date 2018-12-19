@@ -12,7 +12,7 @@
 """
 
 
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 class DS1052e(MessageBasedDriver):

@@ -10,7 +10,7 @@
 """
 
 from lantz import Feat
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 class TDS1002b(MessageBasedDriver):

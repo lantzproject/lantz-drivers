@@ -10,7 +10,7 @@
 """
 
 from lantz import Action, Feat, DictFeat
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 class SerialTemplate(MessageBasedDriver):

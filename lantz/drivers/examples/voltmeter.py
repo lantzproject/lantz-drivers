@@ -11,7 +11,7 @@
 
 from lantz import Feat, DictFeat, Action
 from lantz import errors
-from lantz.messagebased import MessageBasedDriver
+from lantz import MessageBasedDriver
 
 
 class LantzVoltmeter(MessageBasedDriver):
