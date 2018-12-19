@@ -11,7 +11,7 @@ from pyvisa import constants
 
 from lantz import Action, Feat
 from lantz.messagebased import MessageBasedDriver
-from lantz.errors import InstrumentError
+from lantz import errors
 
 
 class NanoScanZ(MessageBasedDriver):
@@ -47,13 +47,13 @@ class NanoScanZ(MessageBasedDriver):
         if ans[0] == 'E':
             code = ans[2]
             if code == '8':
-                raise InstrumentError('Value out of range')
+                raise errors.InstrumentError('Value out of range')
             elif code == '4':
-                raise InstrumentError('Command parse error, ie wrong number  of parameters')
+                raise errors.InstrumentError('Command parse error, ie wrong number  of parameters')
             elif code == '5':
-                raise InstrumentError('Unknown command')
+                raise errors.InstrumentError('Unknown command')
             elif code == '2':
-                raise InstrumentError('Invalid checksum')
+                raise errors.InstrumentError('Invalid checksum')
 
         return ans
     

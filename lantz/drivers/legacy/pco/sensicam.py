@@ -24,7 +24,7 @@ import ctypes as ct
 import numpy as np
 
 from lantz import Action, Feat
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.foreign import LibraryDriver, RetTuple
 
 class Status(object):
@@ -82,7 +82,7 @@ class Sensicam(LibraryDriver):
 
     def _return_handler(self, func_name, ret_value):
         if ret_value < 0:
-            raise InstrumentError(_ERRORS[ret_value])
+            raise errors.InstrumentError(_ERRORS[ret_value])
         elif (ret_value > 0 and
               func_name not in ('GET_COCTIME', 'GET_DELTIME', 'GET_BELTIME', 'GET_EXPTIME')):
             self.log_warning('While calling {}: {}', func_name, _ERRORS[ret_value])

@@ -28,7 +28,7 @@
 """
 
 from lantz import Feat, Action
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.messagebased import MessageBasedDriver
 
 def between(s, before, after):
@@ -66,7 +66,7 @@ class HRI(MessageBasedDriver):
         self.resource.write(command)
         ans = self.read(read_termination)
         if expected and not expected in ans:
-            raise InstrumentError("'{}' not in '{}'".format(expected, ans))
+            raise errors.InstrumentError("'{}' not in '{}'".format(expected, ans))
         return ans
 
     @Action()
@@ -110,7 +110,7 @@ class HRI(MessageBasedDriver):
         """Trigger termination for TTL logic (for ECL is fixed to 50 ohm).
         """
         if self.recall('trigger_type') == 'ecl':
-            raise InstrumentError('Level triggering only with ECL')
+            raise errors.InstrumentError('Level triggering only with ECL')
         self.query_expect(value)
 
     @Feat(None, values={'rising': '+VETRIG', 'falling': '-VETRIG}'})
@@ -124,7 +124,7 @@ class HRI(MessageBasedDriver):
         """Trigger mode for ECL logic.
         """
         if self.recall('trigger_type') == 'ttl':
-            raise InstrumentError('Level triggering only with ECL')
+            raise errors.InstrumentError('Level triggering only with ECL')
 
         self.query_expect(value)
 
@@ -141,7 +141,7 @@ class HRI(MessageBasedDriver):
             try:
                 pos = ans.index('.')
             except ValueError:
-                raise InstrumentError('Unsupported operation.')
+                raise errors.InstrumentError('Unsupported operation.')
             return float(ans[pos+2:pos+7])
 
     @trigger_ecl_level.setter
@@ -165,7 +165,7 @@ class HRI(MessageBasedDriver):
             try:
                 pos = ans.index('.')
             except ValueError:
-                raise InstrumentError('Unsupported operation.')
+                raise errors.InstrumentError('Unsupported operation.')
             return float(ans[pos+2:pos+7]) / 10.0
 
     @clamp_voltage.setter
@@ -189,7 +189,7 @@ class HRI(MessageBasedDriver):
             try:
                 pos = ans.index('.')
             except ValueError:
-                raise InstrumentError('Unsupported operation.')
+                raise errors.InstrumentError('Unsupported operation.')
             return float(ans[pos+2:pos+7]) / 10.
 
     @average_voltage.setter

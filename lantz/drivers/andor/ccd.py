@@ -25,7 +25,7 @@ import ctypes as ct
 from collections import namedtuple
 
 from lantz import Driver, Feat, Action, DictFeat
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.foreign import LibraryDriver
 from lantz import Q_
 
@@ -138,7 +138,7 @@ class CCD(LibraryDriver):
         excl_func = ['GetTemperatureF', 'IsCountConvertModeAvailable',
                      'IsAmplifierAvailable', 'IsTriggerModeAvailable']
         if ret_value != 20002 and func_name not in excl_func:
-            raise InstrumentError('{}'.format(_ERRORS[ret_value]))
+            raise errors.InstrumentError('{}'.format(_ERRORS[ret_value]))
         return ret_value
 
     def initialize(self):

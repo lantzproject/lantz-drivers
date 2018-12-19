@@ -303,10 +303,10 @@ class USBDriver(Driver):
         devices = self.find_devices(vendor, product, serial_number, None, **device_filters)
 
         if not devices:
-            raise InstrumentError('No device found.')
+            raise errors.InstrumentError('No device found.')
         elif len(devices) > 1:
             desc = '\n'.join(str(DeviceInfo.from_device(dev)) for dev in devices)
-            raise InstrumentError('{} devices found:\n{}\n'
+            raise errors.InstrumentError('{} devices found:\n{}\n'
                                   'Please narrow the search criteria'.format(len(devices), desc))
 
         self.usb_dev, other = devices[0], devices[1:]
@@ -325,7 +325,7 @@ class USBDriver(Driver):
             self.usb_dev.set_interface_altsetting()
         except usb.core.USBError as e:
             self.log_error("Could not set configuration")
-            raise InstrumentError('failed to set configuration')
+            raise errors.InstrumentError('failed to set configuration')
 
         self.usb_intf = self._find_interface(self.usb_dev, self.INTERFACE)
         self.log_debug('Interface: {}'.format(self.usb_intf.index))
@@ -371,7 +371,7 @@ class USBDriver(Driver):
         try:
             return self.usb_send_ep.write(data)
         except usb.core.USBError as e:
-            raise InstrumentError(str(e))
+            raise errors.InstrumentError(str(e))
 
     def recv(self, size):
         return self.raw_recv(size)

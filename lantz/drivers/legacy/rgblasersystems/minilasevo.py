@@ -9,7 +9,7 @@
 
 from lantz import Feat
 from lantz.drivers.legacy.serial import SerialDriver
-from lantz.errors import InstrumentError
+from lantz import errors
 
 class MiniLasEvo(SerialDriver):
     """Driver for any RGB Lasersystems MiniLas Evo laser.
@@ -46,21 +46,21 @@ class MiniLasEvo(SerialDriver):
         code = ans[0]
         if code !=0:
             if code == '1':
-                raise InstrumentError('Command invalid')
+                raise errors.InstrumentError('Command invalid')
             elif code == '2':
-                raise InstrumentError('Wrong number of parameters')
+                raise errors.InstrumentError('Wrong number of parameters')
             elif code == '3':
-                raise InstrumentError('Parameter value is out of range')
+                raise errors.InstrumentError('Parameter value is out of range')
             elif code == '4':
-                raise InstrumentError('Unlocking code is wrong')
+                raise errors.InstrumentError('Unlocking code is wrong')
             elif code == '5':
-                raise InstrumentError('Device is locked for this command')
+                raise errors.InstrumentError('Device is locked for this command')
             elif code == '6':
-                raise InstrumentError('This function is not supported')
+                raise errors.InstrumentError('This function is not supported')
             elif code == '7':
-                raise InstrumentError('Timeout while reading command (60 s)')
+                raise errors.InstrumentError('Timeout while reading command (60 s)')
             elif code == '8':
-                raise InstrumentError('This value is currently not available')
+                raise errors.InstrumentError('This value is currently not available')
 
         ans = ans[2:]
         # TODO: Code reporting?

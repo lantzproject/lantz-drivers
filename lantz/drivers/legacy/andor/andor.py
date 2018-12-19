@@ -17,7 +17,7 @@
 import ctypes as ct
 
 from lantz import Driver, Feat, Action
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.foreign import LibraryDriver
 
 _ERRORS = {
@@ -94,7 +94,7 @@ class Andor(LibraryDriver):
 
     def _return_handler(self, func_name, ret_value):
         if ret_value != 0:
-            raise InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
+            raise errors.InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
         return ret_value
 
     def initialize(self):

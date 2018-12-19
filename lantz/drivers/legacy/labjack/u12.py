@@ -10,7 +10,7 @@
 
 from lantz import Feat, Action, DictFeat
 from lantz import Driver
-from lantz.errors import InstrumentError
+from lantz import errors
 
 from _internal import u12 as _u12
 
@@ -63,7 +63,7 @@ class U12(Driver):
         gain_list = [1,2,4,5,8,10,16,20]
         gain_value = gain
         if gain_value not in gain_list:
-            raise InstrumentError('Gain value not permitted, check driver code or Labjack user guide')
+            raise errors.InstrumentError('Gain value not permitted, check driver code or Labjack user guide')
         else:
             return self._internal.eAnalogIn(channel = key + 8, gain = gain_value)['voltage']
     

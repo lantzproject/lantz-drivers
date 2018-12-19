@@ -13,7 +13,7 @@ import ctypes as ct
 
 from lantz import Feat, Action, DictFeat
 from lantz.foreign import LibraryDriver
-from lantz.errors import InstrumentError
+from lantz import errors
 
 class ForeignTemplate(LibraryDriver):
     """Template for Drivers using a library.
@@ -23,7 +23,7 @@ class ForeignTemplate(LibraryDriver):
 
     def _return_handler(self, func_name, ret_value):
         if ret_value != 0:
-            raise InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
+            raise errors.InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
         return ret_value
 
     @Feat()

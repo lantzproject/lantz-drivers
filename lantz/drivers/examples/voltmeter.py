@@ -10,7 +10,7 @@
 """
 
 from lantz import Feat, DictFeat, Action
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.messagebased import MessageBasedDriver
 
 
@@ -24,7 +24,7 @@ class LantzVoltmeter(MessageBasedDriver):
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         answer = super().query(command, send_args=send_args, recv_args=recv_args)
         if answer == 'ERROR':
-            raise InstrumentError
+            raise errors.InstrumentError
         return answer
 
     @Feat()

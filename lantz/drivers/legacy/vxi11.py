@@ -14,7 +14,7 @@
 import enum
 import socket
 
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.drivers.legacy import rpc
 from lantz import Driver
 

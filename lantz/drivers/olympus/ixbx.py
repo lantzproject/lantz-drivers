@@ -25,7 +25,7 @@
 from pyvisa import constants
 
 from lantz import Feat, Action, Q_
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.messagebased import MessageBasedDriver
 
 # Physical units used by the IX/BX microscopes
@@ -87,13 +87,13 @@ class IXBX(MessageBasedDriver):
         response = super().query(command, send_args=recv_args, recv_args=recv_args)
         command = command.strip()[0]
         if response in ('1x', '2x'):
-            raise InstrumentError("Unknown command: '{}'".format(command))
+            raise errors.InstrumentError("Unknown command: '{}'".format(command))
         if not response.startswith(command):
-            raise InstrumentError("Unknown response: '{}'".format(response))
+            raise errors.InstrumentError("Unknown response: '{}'".format(response))
         if response == 'X' or 'x':
-            raise InstrumentError('Unable to set')
+            raise errors.InstrumentError('Unable to set')
         elif not response == '+':
-            raise InstrumentError("Unknown response: '{}'".format(response))
+            raise errors.InstrumentError("Unknown response: '{}'".format(response))
         return response
 
     @Feat(read_once=True)

@@ -19,7 +19,7 @@ from collections import namedtuple
 
 import usb
 from lantz.drivers.legacy.textual import TextualMixin
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.drivers.legacy.usb import find_devices, find_interfaces, find_endpoint, USBDriver
 
 
@@ -131,7 +131,7 @@ class USBTMCDriver(USBDriver, TextualMixin):
         self._btag = 0
 
         if not (self.usb_recv_ep and self.usb_send_ep):
-            raise InstrumentError("TMC device must have both Bulk-In and Bulk-out endpoints.")
+            raise errors.InstrumentError("TMC device must have both Bulk-In and Bulk-out endpoints.")
 
     def _get_capabilities(self):
         cap = self.usb_dev.ctrl_transfer(
@@ -147,7 +147,7 @@ class USBTMCDriver(USBDriver, TextualMixin):
     def _find_interface(self, dev, setting):
         interfaces = find_interfaces(dev, bInterfaceClass=0xFE, bInterfaceSubClass=3)
         if not interfaces:
-            raise InstrumentError('USB TMC interface not found.')
+            raise errors.InstrumentError('USB TMC interface not found.')
         elif len(interfaces) > 1:
             self.log_warning('More than one interface found, selecting first.')
 

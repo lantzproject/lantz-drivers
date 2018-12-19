@@ -11,7 +11,7 @@
 """
 
 from lantz import Feat, Action
-from lantz.errors import InstrumentError
+from lantz import errors
 from lantz.foreign import LibraryDriver, RetValue, RetStr
 
 from .constants import Constants, Types
@@ -68,25 +68,25 @@ class _Base(LibraryDriver):
     def _get_error_string(self, error_code):
         size = self.lib.GetErrorString(error_code, None, 0)
         if size <= 0:
-            raise InstrumentError('Could not retrieve error string.')
+            raise errors.InstrumentError('Could not retrieve error string.')
         err, msg = self.lib.GetErrorString(error_code, *RetStr(size))
         if err < 0:
-            raise InstrumentError('Could not retrieve error string.')
+            raise errors.InstrumentError('Could not retrieve error string.')
         return msg
 
     def _get_error_extended_error_info(self):
         size = self.lib.GetExtendedErrorInfo(None, 0)
         if size <= 0:
-            raise InstrumentError('Could not retrieve extended error info.')
+            raise errors.InstrumentError('Could not retrieve extended error info.')
         err, msg = self.lib.GetExtendedErrorInfo(*RetStr(size))
         if err < 0:
-            raise InstrumentError('Could not retrieve extended error info.')
+            raise errors.InstrumentError('Could not retrieve extended error info.')
         return msg
 
     def _return_handler(self, func_name, ret_value):
         if ret_value < 0 and func_name not in ('GetErrorString', 'GetExtendedErrorInfo'):
             msg = self._get_error_string(ret_value)
-            raise InstrumentError(msg)
+            raise errors.InstrumentError(msg)
         return ret_value
 
     def __get_fun(self, name):
@@ -1377,7 +1377,7 @@ class Task(_Base):
         elif type == 'analog_window':
             fun = self.lib.GetAnlgWinPauseTrigSrc
         else:
-            raise InstrumentError('Pause trigger type is not specified')
+            raise errors.InstrumentError('Pause trigger type is not specified')
 
         err, value = fun(*RetStr(default_buf_size))
         return value
@@ -1393,7 +1393,7 @@ class Task(_Base):
         elif type == 'analog_window':
             fun = self.lib.SetAnlgWinPauseTrigSrc
         else:
-            raise InstrumentError('Pause trigger type is not specified')
+            raise errors.InstrumentError('Pause trigger type is not specified')
 
         fun(source)
 
@@ -1422,7 +1422,7 @@ class Task(_Base):
             fun = self.lib.SetAnlgWinPauseTrigWhen
             convert = _WHEN_TRIGGER_AWIN
         else:
-            raise InstrumentError('Pause trigger type is not specified')
+            raise errors.InstrumentError('Pause trigger type is not specified')
 
         err, val = fun(RetValue('i32'))
         for key, value in convert.items():
@@ -1449,7 +1449,7 @@ class Task(_Base):
             fun = self.lib.SetAnlgWinPauseTrigWhen
             convert = _WHEN_TRIGGER_AWIN
         else:
-            raise InstrumentError('Pause trigger type is not specified')
+            raise errors.InstrumentError('Pause trigger type is not specified')
 
         fun(convert[when])
 
