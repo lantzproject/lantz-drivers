@@ -5,7 +5,8 @@ Lantz-drivers Changelog
 0.5 (unreleased)
 ----------------
 
-- Extracted Drivers from Lantz 0.4.dev0
+- Extracted Drivers from Lantz 0.4.dev0. All specific drivers are kept here.
+- Migrated to mfeats when possible.
 
 
 0.3 (2015-02-05)
