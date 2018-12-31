@@ -2,7 +2,7 @@ Lantz-drivers Changelog
 =======================
 
 
-0.5 (unreleased)
+0.5 (2018-12-31)
 ----------------
 
 - Extracted Drivers from Lantz 0.4.dev0. All specific drivers are kept here.
