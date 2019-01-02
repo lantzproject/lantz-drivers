@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.drivers.princetoninstruments.winspec
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Implementation of Winspec PI Camera over a Socket
+    Author: Berk Diler
+    Date: 29/08/2017
+"""
+
+This driver is designed for a Princeton Instruments ST - 133 driver. This device is old (and expensive) - it will only run on a windows xp or vista 32 bits.
+THERE ARE NO 64 BIT DRIVERS - DO NOT WASTE YOUR TIME LOOKING FOR IT. Instead have a designated computer with Winspec and basic python installed.
+Place the python files in any folder in the designated computer - and simply run VirtualWinSpec.py by double clicking and then create a Lantz driver
+by calling the address "TCPIP::<IP Address>::<Port Number>::SOCKET". If no connection is established the local machine will timeout in 5 minutes.
+Everything should work smoothly.
+
+Have fun.
