@@ -28,7 +28,7 @@ companies = [path for path in paths
 
 
 setup(name='lantz-drivers',
-      version='0.5.1.dev0',
+      version='0.5.2',
       license='BSD',
       description='Instrumentation framework',
       long_description=long_description,
