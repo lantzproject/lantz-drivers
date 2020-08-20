@@ -10,7 +10,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-
 from .n51xx import N51xx
 from .ag33220A import Ag33220A
 from .ag81130a import Ag81130A

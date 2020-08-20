@@ -116,16 +116,13 @@ class A2023a(MessageBasedDriver):
     def frequency(self, value):
         self.write('CFRQ:VALUE {0:f}HZ'.format(value))
 
-
     #: RF amplitude.
     amplitude = QuantityFeat(('RFLV?', ':RFLV:UNITS {_};TYPE {_};VALUE {0:f};INC {_};<status>'),
-                              'RFLV:VALUE {0:f}V', units='V')
-
+                             'RFLV:VALUE {0:f}V', units='V')
 
     #: Offset amplitude.
     offset = QuantityFeat(('RFLV:OFFS?', ':RFLV:OFFS:VALUE {0:f};{_}'),
                           'RFLV:OFFS:VALUE {0:f}', units='V')
-
 
     #: Enable or disable the RF output
     output_enabled = BoolFeat('OUTPUT?', 'OUTPUT:{}', 'ENABLED', 'DISABLED')
@@ -200,6 +197,7 @@ if __name__ == '__main__':
     with A2023a.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             print(inst.idn)
@@ -209,10 +207,9 @@ if __name__ == '__main__':
             inst.freq = 41.006
             print(inst.rflevel)
             inst.rflevel = -13
-            inst.phase=0
+            inst.phase = 0
             print(inst.phase)
-            inst.phase=30
+            inst.phase = 30
             print(inst.phase)
-            inst.phase=60
+            inst.phase = 60
             print(inst.phase)
-

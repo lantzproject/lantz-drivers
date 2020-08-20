@@ -30,12 +30,11 @@ import numpy as np
 import threading
 import time
 
-
 beginner_controls = ['ExposureTimeAbs', 'GainRaw', 'Width', 'Height',
                      'OffsetX', 'OffsetY']
 aliases = {'exposure_time': 'ExposureTimeAbs',
            'gain': 'GainRaw',
-          }
+           }
 
 
 def todict(listitems):
@@ -62,12 +61,14 @@ def attach_dyn_propr(instance, prop_name, propr):
 def create_getter(p):
     def tmpfunc(self):
         return self.cam[p]
+
     return tmpfunc
 
 
 def create_setter(p):
     def tmpfunc(self, val):
         self.cam[p] = val
+
     return tmpfunc
 
 

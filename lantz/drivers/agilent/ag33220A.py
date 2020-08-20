@@ -1,10 +1,11 @@
 from lantz.messagebased import MessageBasedDriver
 from lantz import Feat, DictFeat, Action
 
-#from lantz import Q_
+# from lantz import Q_
 
 import socket
 import warnings
+
 
 class Ag33220A(MessageBasedDriver):
     """
@@ -72,10 +73,10 @@ class Ag33220A(MessageBasedDriver):
 
     @Feat(values={'on': 1, 'off': 0})
     def output_toggle(self):
-         """
-         Returns whether or not the output is on or off.
-         """
-         return int(self.query('OUTP?'))
+        """
+        Returns whether or not the output is on or off.
+        """
+        return int(self.query('OUTP?'))
 
     @output_toggle.setter
     def output_toggle(self, on_off):
@@ -84,7 +85,7 @@ class Ag33220A(MessageBasedDriver):
         """
         return self.write('OUTP {}'.format(on_off))
 
-    @Feat(limits=(0.01,10))
+    @Feat(limits=(0.01, 10))
     def voltage(self):
         """
         Returns the amplitude voltage setting.
@@ -160,13 +161,11 @@ if __name__ == '__main__':
         inst.function = 'square'
         print('Function: {}'.format(inst.function))
 
-
         print('Frequency:{}Hz'.format(inst.frequency))
         inst.frequency = 1000.0
         print('Frequency:{}Hz'.format(inst.frequency))
         inst.frequency = 20000.0
         print('Frequency:{}Hz'.format(inst.frequency))
-
 
         print('Output:{}'.format(inst.output_toggle))
         inst.output_toggle = 'off'
