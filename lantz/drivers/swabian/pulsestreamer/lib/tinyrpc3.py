@@ -2,10 +2,12 @@ import requests
 import json
 from tinyrpc.protocols.jsonrpc import JSONRPCErrorResponse, JSONRPCSuccessResponse, RPCError, JSONRPCProtocol
 
+
 class Struct:
-    def __init__(self, **entries): 
+    def __init__(self, **entries):
         self.__dict__.update(entries)
-        
+
+
 class RPCClient(object):
     """Client for making RPC calls to connected servers.
     :param protocol: An :py:class:`~tinyrpc.RPCProtocol` instance.
@@ -15,6 +17,7 @@ class RPCClient(object):
     JSON_RPC_VERSION = "2.0"
     _ALLOWED_REPLY_KEYS = sorted(['id', 'jsonrpc', 'error', 'result'])
     _ALLOWED_REQUEST_KEYS = sorted(['id', 'jsonrpc', 'method', 'params'])
+
     def parse_reply(self, data):
         try:
             rep = json.loads(data)
@@ -50,23 +53,21 @@ class RPCClient(object):
 
         response.unique_id = rep['id']
 
-        return response        
+        return response
 
-    
-    
     def __init__(self, url):
         self.protocol = JSONRPCProtocol()
         self.url = url
 
     def _send_and_handle_reply(self, req):
-#        print (req.serialize()) # show JSON string
+        #        print (req.serialize()) # show JSON string
         headers = {'content-type': 'application/json'}
         reply = requests.post(self.url, req.serialize(), headers=headers)
-#        print (reply.json());
+        #        print (reply.json());
         response = self.parse_reply(str(reply.json()).replace("'", '"'))
 
         if hasattr(response, 'error'):
-            raise RPCError('Error calling remote procedure: %s' %\
+            raise RPCError('Error calling remote procedure: %s' % \
                            response.error)
 
         return response
@@ -100,6 +101,7 @@ class RPCClient(object):
 
         return self._send_and_handle_reply(req)
 
+
 class RPCProxy(object):
     """Create a new remote proxy object.
     Proxies allow calling of methods through a simpler interface. See the
@@ -120,9 +122,9 @@ class RPCProxy(object):
         name ``name`` on the client associated with the proxy.
         """
         proxy_func = lambda *args, **kwargs: self.client.call(
-                         self.prefix + name,
-                         args,
-                         kwargs,
-                         one_way=self.one_way
-                     )
+            self.prefix + name,
+            args,
+            kwargs,
+            one_way=self.one_way
+        )
         return proxy_func

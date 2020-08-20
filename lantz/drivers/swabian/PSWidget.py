@@ -13,9 +13,7 @@ from lantz.messagebased import MessageBasedDriver
 import numpy as np
 
 
-
 class Swabian(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\n',
@@ -23,8 +21,6 @@ class Swabian(MessageBasedDriver):
             "timeout": 5
         }
     }
-
-
 
     @Feat(units="ns")
     def duty_cycle(self):
@@ -54,9 +50,9 @@ class Swabian(MessageBasedDriver):
     def sweep_index(self, key, el):
         self.write('IterSweep {} {}'.format(key, el))
 
-    @DictFeat(units = "ns")
+    @DictFeat(units="ns")
     def sweep_value(self, key):
-        return int(1e9*float(self.query('GetSweepVal {}'.format(key))))
+        return int(1e9 * float(self.query('GetSweepVal {}'.format(key))))
 
     @Action()
     def stream(self):

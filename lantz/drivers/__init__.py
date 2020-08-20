@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+
 # This section declares some generic classes
 class Wavemeter:
     # This should implement at least a frequency Feat
