@@ -62,7 +62,18 @@ class PowerMeter1830c(MessageBasedDriver):
     #: Averaging mode / filter
     averaging_mode = EnumFeat('F?', 'F{}', Averaging)
 
-    #:
+    #@Feat(values={'Slow': 1, 'Medium': 2, 'Fast': 3})
+    #def filter(self):
+    #    """ How many measurements are averaged for the displayed reading.
+    #        slow: 16 measurements
+    #        medium: 4 measurements
+    #        fast: 1 measurement.
+    #    """
+    #    return int(self.query('F?'))
+    #
+    #@filter.setter
+    #def filter(self,value):
+    #    self.send('F{}'.format(value))
         
     @Feat(values={True: 1, False: 0})
     def go(self):

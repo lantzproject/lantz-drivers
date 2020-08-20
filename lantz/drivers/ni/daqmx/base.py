@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+﻿﻿# -*- coding: utf-8 -*-
 """
     lantz.drivers.ni.daqmx.base
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,10 +151,10 @@ class System(_Base):
 
     @Feat(read_once=True)
     def version(self):
-        """Version of installed NI-DAQ library. 
+        """Version of installed NI-DAQ library.
         """
-        err, major  = self.lib.GetSysNIDAQMajorVersion(RetValue('u32'))
-        err, minor  = self.lib.GetSysNIDAQMinorVersion(RetValue('u32'))
+        err, major = self.lib.GetSysNIDAQMajorVersion(RetValue('u32'))
+        err, minor = self.lib.GetSysNIDAQMinorVersion(RetValue('u32'))
         return major, minor
 
     def _device_names(self):
@@ -377,12 +377,12 @@ class Task(_Base):
         return cls._REGISTRY[io_type]
 
     def _load_task(self, name):
-        err, self.__task_handle = self.lib.LoadTask(name, RetValue('u32'))
+        err, self.__task_handle = self.lib.LoadTask(name, RetValue('u64'))
         self.name = name
         self.log_debug('Loaded task with {} ({})'.format(self.name, self.__task_handle))
 
     def _create_task(self, name):
-        err, self.__task_handle = self.lib.CreateTask(name, RetValue('u32'))
+        err, self.__task_handle = self.lib.CreateTask(name, RetValue('u64'))
         err, self.name = self.lib.GetTaskName(*RetStr(default_buf_size))
         self.log_debug('Created task with {} ({})'.format(self.name, self.__task_handle))
 
@@ -421,6 +421,13 @@ class Task(_Base):
         err, buf = self.lib.GetTaskChannels(*RetStr(default_buf_size))
         names = tuple(n.strip() for n in buf.split(',') if n.strip())
         return names
+
+    def number_of_channels(self):
+        """Returns the number of virtual channels in the task.
+        """
+        err, buf = self.lib.GetTaskChannels(*RetStr(default_buf_size))
+        names = tuple(n.strip() for n in buf.split(',') if n.strip())
+        return len(names)
 
     def _device_names(self):
         """Return a tuple with the names of all devices in the task.
@@ -501,7 +508,6 @@ class Task(_Base):
         repeatedly. Starting and stopping a task repeatedly reduces
         the performance of the application.
         """
-
         self.lib.StartTask()
 
     @Action()
@@ -849,9 +855,11 @@ class Task(_Base):
         """
         if source == 'on_board_clock':
             source = None
-        self.samples_per_channel = samples_per_channel
+        #self.samples_per_channel = samples_per_channel
         self.sample_mode = sample_mode
-        self.lib.CfgSampClkTiming(source, float64(rate), active_edge, sample_mode, samples_per_channel)
+
+
+        self.lib.CfgSampClkTiming(source, rate, active_edge, sample_mode, samples_per_channel)
 
     def configure_timing_burst_handshaking_export_clock(self, *args, **kws):
         """
@@ -951,7 +959,17 @@ class Task(_Base):
           acquiring or generating samples: rising or falling edge(s).
         """
 
-        self.lib.CfgDigEdgeStartTrig(self, source, edge)
+        if edge == Constants.Val_Falling:
+            edge_val = int(Constants.Val_Falling)
+        else:
+            edge_val = int(Constants.Val_Rising)
+
+        if edge == Constants.Val_Falling:
+            edge_val = int(Constants.Val_Falling)
+        else:
+            edge_val = int(Constants.Val_Rising)
+
+        self.lib.CfgDigEdgeStartTrig(source, edge_val)
 
     @Action(values=(str, str, _WHEN_MATCH))
     def configure_trigger_digital_pattern_start(self, source, pattern, match=True):
@@ -975,7 +993,7 @@ class Task(_Base):
           Specifies the conditions under which the trigger
           occurs: pattern matches or not.
         """
-        self.lib.CfgDigPatternStartTrig(self, source, pattern, match)
+        self.lib.CfgDigPatternStartTrig(source, pattern, match)
 
     def configure_trigger_disable_start(self):
         """
@@ -1027,6 +1045,18 @@ class Task(_Base):
         """
 
         self.lib.CfgAnlgEdgeRefTrig(source, slope, level, pre_trigger_samps)
+
+    @Action()
+    def send_software_trigger(self, triggerID=Constants.Val_AdvanceTrigger):
+        """
+
+        :param triggerID: (int32)  	Specifies which software trigger to generate.
+
+               DAQmx_Val_AdvanceTrigger		Generate the advance trigger
+
+        """
+
+        self.lib.SendSoftwareTrigger(triggerID)
 
 
     @Feat(values=(str, _WHEN_WINDOW, None, None, None))
@@ -1146,6 +1176,20 @@ class Task(_Base):
             source = '/' + source
 
         self.lib.CfgDigPatternRefTrig(self, source, pattern, match, pre_trigger_samps)
+
+    @Action()
+    def configure_output_buffer(self, samples_per_channel=1000):
+        """
+
+        :params: taskHandle (TaskHandle): task to configure
+        :params: num_samps_per_chan (uInt32): number of samples to output per channel.
+        Zero indicates no buffer should be allocated. Use a buffer size of 0 to perform
+         a hardware-timed operation without using a buffer.
+
+        :return: status (int32) - error code returned by the function in the event of an
+        error or warning
+        """
+        return self.lib.CfgOutputBuffer(self, samples_per_channel)
 
     @Action()
     def disable_reference_trigger(self):
@@ -1319,7 +1363,6 @@ class Task(_Base):
         return value
 
     @arm_start_trigger_source.setter
-    @arm_start_trigger_source.setter
     def arm_start_trigger_source(self, source):
         source = str (source)
         if source is None:
@@ -1327,7 +1370,7 @@ class Task(_Base):
         else:
             self.lib.SetDigEdgeArmStartTrigSrc(source)
 
-    @Feat(values={None: None}.update(_EDGE_TYPES))
+    @Feat(values=dict({None: None}, **_EDGE_TYPES))
     def arm_start_trigger_edge(self):
         """on which edge of a digital signal to arm the task
         for a Start Trigger
@@ -1343,7 +1386,7 @@ class Task(_Base):
         else:
             self.lib.SetDigEdgeArmStartTrigEdge(edge)
 
-    @Feat(values={None: None}.update(_TRIGGER_TYPES))
+    @Feat(values=dict({None: None}, **_TRIGGER_TYPES))
     def pause_trigger_type(self):
         """The type of trigger to use to pause a task.
 
@@ -1432,7 +1475,7 @@ class Task(_Base):
             raise ValueError(val)
 
     @pause_trigger_when.setter
-    def pause_trigger_when (self, when=None):
+    def pause_trigger_when(self, when=None):
 
         if when is None:
             self.lib.ResetDigLvlPauseTrigWhen()
@@ -1453,7 +1496,7 @@ class Task(_Base):
 
         fun(convert[when])
 
-    def read_current_position (self):
+    def read_current_position(self):
         """Samples per channel the current position in the buffer.
         """
         err, value = self.lib.GetReadCurrReadPos(*RetValue('u64'))

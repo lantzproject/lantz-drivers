@@ -142,7 +142,7 @@ class Lantz_Server(socketserver.TCPServer):
 
 
 class Device_Client():
-    def __new__(cls, device_driver_class, host, port, timeout=1, allow_initialize_finalize=True):
+    def __new__(cls, device_driver_class, host, port, timeout=1, allow_initialize_finalize=False):
         if type(device_driver_class) is str:
             class_name = device_driver_class.split('.')[-1]
             mod = import_module(device_driver_class.replace('.'+class_name, ''))

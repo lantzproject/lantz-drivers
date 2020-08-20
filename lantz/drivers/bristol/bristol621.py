@@ -2,7 +2,9 @@ from lantz.foreign import LibraryDriver
 from lantz import Feat, Action
 from ctypes import c_long, c_int, c_uint, c_double, c_float, byref, POINTER, pointer
 
-class Bristol621(LibraryDriver):
+from lantz.drivers.bristol import Bristol6XX
+
+class Bristol621(LibraryDriver, Bristol6XX):
 
     LIBRARY_NAME = 'CLDevIFace.dll'
     LIBRARY_PREFIX = 'CL'

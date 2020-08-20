@@ -13,7 +13,7 @@
     - create same API as lantz.drivers.basler
 
 
-    Author: Vasco Tenner
+    Author: Vasco Tenner, Alex Bourassa, and Kevin Miao
     Date: 20181204
 
     TODO:

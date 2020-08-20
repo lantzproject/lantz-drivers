@@ -14,7 +14,7 @@
 
 
     :company: National Instruments
-    :description: 
+    :description:
     :website: http://www.ni.com/
 
     ----
@@ -23,9 +23,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
+__all__ = ['base', 'channels', 'tasks', 'constants']
 from .base import System, Task, Channel, Device
 from .channels import *
 from .tasks import *
 from .constants import Constants, Types
-
-

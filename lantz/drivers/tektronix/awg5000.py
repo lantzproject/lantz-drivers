@@ -85,7 +85,8 @@ class AWG5000(MessageBasedDriver):
     @Action()
     def toggle_all_outputs(self, state):
         for channel in range(1, 5):
-            self.toggle_output[channel] = state
+            while not self.toggle_output[channel] == state:
+                self.toggle_output[channel] = state
 
     @DictFeat(units='V', keys=_ch_markers)
     def marker_amplitude(self, ch_m):
@@ -146,6 +147,14 @@ class AWG5000(MessageBasedDriver):
     @seq_loop_infinite.setter
     def seq_loop_infinite(self, line, infinite_loop):
         self.write('SEQUENCE:ELEMENT{}:LOOP:INFINITE {}'.format(line, infinite_loop))
+
+    @DictFeat()
+    def seq_goto(self, line):
+        return int(self.query('SEQUENCE:ELEMENT{}:GOTO:INDEX?'.format(line)))
+
+    @seq_goto.setter
+    def seq_goto(self, line, goto_line):
+        self.write('SEQUENCE:ELEMENT{}:GOTO:INDEX {}'.format(line, goto_line))
 
     @Action()
     def jump_to_line(self, line):

@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+To connect the power meter you'll need to use the "Power meter driver switcher" application to switch to the PM100D (Ni-Visa) drivers.
+
+Then the resource name should show up when exceuting:
+import visa
+visa.ResourceManager().list_resources()
+"""
+
 
 from lantz.messagebased import MessageBasedDriver
 from lantz import Feat

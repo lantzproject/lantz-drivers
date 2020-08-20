@@ -14,7 +14,7 @@ from lantz.drivers.legacy.visalib import RichEnum
 class Constants(metaclass=RichEnum):
 
     _PREFIX = 'DAQMX_'
-    
+
     Buf_Input_BufSize = 0x186C
     Buf_Input_OnbrdBufSize = 0x230A
     Buf_Output_BufSize = 0x186D

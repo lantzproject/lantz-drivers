@@ -17,6 +17,8 @@ from lantz.foreign import RetStr, RetTuple, RetValue
 from .base import Task, Channel
 from .constants import Constants
 
+from lantz import Q_
+
 _GROUP_BY = {'scan': Constants.Val_GroupByScanNumber,
              'channel': Constants.Val_GroupByChannel}
 
@@ -27,6 +29,7 @@ class AnalogInputTask(Task):
     """
 
     IO_TYPE = 'AI'
+    CHANNEL_TYPE = 'AI'
 
     @Feat()
     def max_convert_rate(self):
@@ -69,7 +72,7 @@ class AnalogInputTask(Task):
         return value
 
     @Action(units=(None, 'seconds', None), values=(None, None, _GROUP_BY))
-    def read(self, samples_per_channel=None, timeout=10.0, group_by='channel'):
+    def read(self, samples_per_channel=None, timeout=Q_(10.0, 's'), group_by='channel'):
         """Reads multiple floating-point samples from a task that
         contains one or more analog input channels.
 
@@ -127,18 +130,22 @@ class AnalogInputTask(Task):
 
         number_of_channels = self.number_of_channels()
         if group_by == Constants.Val_GroupByScanNumber:
-            data = np.zeros((samples_per_channel, number_of_channels), dtype=np.float64)
+            data = np.zeros((samples_per_channel, number_of_channels),
+                            dtype=np.float64)
         else:
-            data = np.zeros((number_of_channels, samples_per_channel), dtype=np.float64)
+            data = np.zeros((number_of_channels, samples_per_channel),
+                            dtype=np.float64)
 
-        err, data, count = self.lib.ReadAnalogF64(samples_per_channel, timeout, group_by,
-                                                  data.ctypes.data, data.size, RetValue('i32'), None)
+        err, count = self.lib.ReadAnalogF64(samples_per_channel, timeout,
+                                            group_by, data.ctypes.data,
+                                            data.size, RetValue('i32'),
+                                            None)
 
         if samples_per_channel < count:
             if group_by == 'scan':
                 return data[:count]
             else:
-                return data[:,:count]
+                return data[:, :count]
 
         return data
 
@@ -147,11 +154,14 @@ class AnalogOutputTask(Task):
     """Analog Output Task
     """
 
+    IO_TYPE = 'AO'
     CHANNEL_TYPE = 'AO'
 
+
     @Action(units=(None, None, 'seconds', None), values=(None, None, None, _GROUP_BY))
-    def write(self, data, auto_start=True, timeout=10.0, group_by='scan'):
-        """Write multiple floating-point samples or a scalar to a task
+    def write(self, data, auto_start=True, timeout=Q_(10.0,'seconds'), group_by='scan'):
+        """
+        Write multiple floating-point samples or a scalar to a task
         that contains one or more analog output channels.
 
         Note: If you configured timing for your task, your write is
@@ -198,9 +208,10 @@ class AnalogOutputTask(Task):
 
         data = np.asarray(data, dtype = np.float64)
 
+
         number_of_channels = self.number_of_channels()
 
-        if data.ndims == 1:
+        if data.ndim == 1:
             if number_of_channels == 1:
                 samples_per_channel = data.shape[0]
                 shape = (samples_per_channel, 1)
@@ -218,7 +229,9 @@ class AnalogOutputTask(Task):
             else:
                 samples_per_channel = data.shape[-1]
 
-        err, count = self.lib.WriteAnalogF64(samples_per_channel, auto_start,
+        samps_per_channel = int(samples_per_channel)
+
+        err, count = self.lib.WriteAnalogF64(samps_per_channel, auto_start,
                                              timeout, group_by,
                                              data.ctypes.data, RetValue('i32'),
                                              None)
@@ -226,10 +239,11 @@ class AnalogOutputTask(Task):
         return count
 
 
+
 class DigitalTask(Task):
 
     @Action(units=(None, 'seconds', None), values=(None, None, _GROUP_BY))
-    def read(self, samples_per_channel=None, timeout=10.0, group_by='scan'):
+    def read(self, samples_per_channel=None, timeout=Q_(10.0,'seconds'), group_by='scan'):
         """
         Reads multiple samples from each digital line in a task. Each
         line in a channel gets one byte per sample.
@@ -335,17 +349,22 @@ class DigitalInputTask(DigitalTask):
     """Exposes NI-DAQmx digital input task to Python.
     """
 
+    IO_TYPE = 'DI'
     CHANNEL_TYPE = 'DI'
+
 
 
 class DigitalOutputTask(DigitalTask):
     """Exposes NI-DAQmx digital output task to Python.
     """
 
+    IO_TYPE = 'DO'
     CHANNEL_TYPE = 'DO'
 
+
+
     @Action(units=(None, None, 'seconds', None), values=(None, {True, False}, None, _GROUP_BY))
-    def write(self, data, auto_start=True, timeout=10.0, group_by='scan'):
+    def write(self, data, auto_start=True, timeout=Q_(10.0,'seconds'), group_by='scan'):
         """
         Writes multiple samples to each digital line in a task. When
         you create your write array, each sample per channel must
@@ -396,14 +415,14 @@ class DigitalOutputTask(DigitalTask):
             'group_by_scan_number' - Group by scan number (interleaved).
         """
 
-        number_of_channels = self.get_number_of_channels()
+        number_of_channels = self.number_of_channels()
 
         if np.isscalar(data):
             data = np.array([data]*number_of_channels, dtype = np.uint8)
         else:
             data = np.asarray(data, dtype = np.uint8)
 
-        if data.ndims == 1:
+        if data.ndim == 1:
             if number_of_channels == 1:
                 samples_per_channel = data.shape[0]
                 shape = (samples_per_channel, 1)
@@ -422,8 +441,8 @@ class DigitalOutputTask(DigitalTask):
                 samples_per_channel = data.shape[-1]
 
         err, count = self.lib.WriteDigitalLines(samples_per_channel,
-                                                bool32(auto_start),
-                                                float64(timeout), group_by,
+                                                auto_start,
+                                                timeout, group_by,
                                                 data.ctypes.data, RetValue('u32'), None)
 
         return count
@@ -434,9 +453,11 @@ class CounterInputTask(Task):
     """Exposes NI-DAQmx counter input task to Python.
     """
 
+    IO_TYPE = 'CI'
     CHANNEL_TYPE = 'CI'
 
-    def read_scalar(self, timeout=10.0):
+
+    def read_scalar(self, timeout=Q_(10.0,'s')):
         """Read a single floating-point sample from a counter task. Use
         this function when the counter sample is scaled to a
         floating-point value, such as for frequency and period
@@ -457,10 +478,10 @@ class CounterInputTask(Task):
         :return: The sample read from the task.
         """
 
-        err, value = self.lib.ReadCounterScalarF64(timeout, RetValue('f64'), None)
+        err, value = self.lib.ReadCounterScalarF64(timeout.to('s').magnitude, RetValue('f64'), None)
         return value
 
-    def read(self, samples_per_channel=None, timeout=10.0):
+    def read(self, samples_per_channel=None, timeout=Q_(10.0,'s')):
         """Read multiple 32-bit integer samples from a counter task.
         Use this function when counter samples are returned unscaled,
         such as for edge counting.
@@ -503,13 +524,16 @@ class CounterInputTask(Task):
         :return: The array of samples read.
         """
 
+
         if samples_per_channel is None:
             samples_per_channel = self.samples_per_channel_available()
 
         data = np.zeros((samples_per_channel,),dtype=np.int32)
 
-        err, count = self.lib.ReadCounterU32(samples_per_channel, float64(timeout),
+
+        err, count = self.lib.ReadCounterU32(samples_per_channel, float(timeout.to('s').magnitude),
                                              data.ctypes.data, data.size, RetValue('i32'), None)
+
 
         return data[:count]
 
@@ -519,7 +543,9 @@ class CounterOutputTask(Task):
     """Exposes NI-DAQmx counter output task to Python.
     """
 
-    channel_type = 'CO'
+    IO_TYPE = 'CO'
+    CHANNEL_TYPE = 'CO'
 
 
 Task.register_class(AnalogInputTask)
+Task.register_class(DigitalInputTask)

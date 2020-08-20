@@ -3,7 +3,9 @@ from lantz import Feat, Action
 
 from telnetlib import Telnet
 
-class Bristol671(Driver):
+from lantz.drivers.bristol import Bristol6XX
+
+class Bristol671(Driver, Bristol6XX):
 
     def __init__(self, ip, port=23, timeout=1):
         super().__init__()

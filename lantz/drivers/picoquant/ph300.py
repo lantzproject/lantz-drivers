@@ -112,37 +112,64 @@ class PH300(LibraryDriver):
         databuf.seek(0)
         return databuf
 
+    # @Action()
+    # def read_timestamps(self, nvalues=TTREADMAX):
+    #     databuf = self.read_fifo(nvalues=nvalues)
+    #     c1 = list()
+    #     c2 = list()
+    #     overflow_time = 0
+    #     resolution = self.resolution
+    #     while 1:
+    #         chunk = databuf.read(4)
+    #         if not chunk:
+    #             break
+    #         chunk = struct.unpack('<I', chunk)[0]
+    #         time = chunk & 0x0FFFFFFF
+    #         channel = (chunk & 0xF0000000) >> 28
+    #         if channel == 0xF:
+    #             markers = time & 0xF
+    #             if not markers:
+    #                 overflow_time += t2_wraparound
+    #             else:
+    #                 truetime = overflow_time + time
+    #         else:
+    #             if channel > 4:
+    #                 raise RuntimeError('invalid channel encountered: {}'.format(channel))
+    #             else:
+    #                 # truetime = (overflow_time + time) / 1e12 * resolution
+    #                 truetime = (overflow_time + time) * resolution
+    #                 if channel >= 1:
+    #                     c2.append(truetime)
+    #                 else:
+    #                     c1.append(truetime)
+    #     return c1, c2
+
     @Action()
     def read_timestamps(self, nvalues=TTREADMAX):
         databuf = self.read_fifo(nvalues=nvalues)
-        c1 = list()
-        c2 = list()
-        overflow_time = 0
-        resolution = self.resolution
-        while 1:
-            chunk = databuf.read(4)
-            if not chunk:
-                break
-            chunk = struct.unpack('<I', chunk)[0]
-            time = chunk & 0x0FFFFFFF
-            channel = (chunk & 0xF0000000) >> 28
-            if channel == 0xF:
-                markers = time & 0xF
-                if not markers:
-                    overflow_time += t2_wraparound
-                else:
-                    truetime = overflow_time + time
-            else:
-                if channel > 4:
-                    raise RuntimeError('invalid channel encountered: {}'.format(channel))
-                else:
-                    # truetime = (overflow_time + time) / 1e12 * resolution
-                    truetime = (overflow_time + time) * resolution
-                    if channel >= 1:
-                        c2.append(truetime)
-                    else:
-                        c1.append(truetime)
-        return c1, c2
+        databuf.seek(0)
+
+        dt = np.dtype(np.uint32).newbyteorder('<')
+        raw = np.frombuffer(databuf.getbuffer(), dtype=dt)
+
+        time = (raw & 0x0FFFFFFF).astype(np.int64)
+        channel = (raw & 0xF0000000) >>28
+
+        special = (channel == 15)
+        overflow = special & (time&0x0000000F == 0)
+
+        overflow_edge = np.concatenate([special.nonzero()[0],[len(time)]])
+        prev_i = 0
+        #This is the most time consuming part ~400us.  May be possible to optimize further
+        for n, i in enumerate(overflow_edge):
+            time[prev_i:i] += n*t2_wraparound
+            prev_i = i
+
+        not_special = np.logical_not(special)
+        time = time[not_special]*self.resolution
+        channel = channel[not_special]
+
+        return time[channel == 0], time[channel == 1]
 
     def finalize(self):
         self.call('CloseDevice', self.device_idx)

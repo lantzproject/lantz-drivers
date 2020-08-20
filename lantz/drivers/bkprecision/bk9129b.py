@@ -11,6 +11,8 @@ class BK9129b(MessageBasedDriver):
         }
     }
 
+    CHANNELS = {1:1, 2:2, 3:3}
+
     @Feat()
     def idn(self):
         return self.query('*IDN?')
@@ -31,17 +33,55 @@ class BK9129b(MessageBasedDriver):
     def channel(self, value):
         self.write('INST CH{}'.format(value))
 
-    @DictFeat(units='A')
-    def current(self, ch):
-        return self.query('MEAS:CURR?')
+    @DictFeat(units='A', keys=CHANNELS)
+    def meas_current(self, ch):
+        return self.query('MEAS:CURR? CH{}'.format(ch))
 
-    @DictFeat(units='V')
+    @DictFeat(units='V', keys=CHANNELS)
+    def meas_voltage(self, ch):
+        return self.query('MEAS:VOLT? CH{}'.format(ch))
+
+    @DictFeat(units='V', keys=CHANNELS)
     def voltage(self, ch):
-        return self.query('MEAS?')
+        vals = self.query('APP:VOLT?').split(',')
+        return float(vals[ch-1])
 
     @voltage.setter
-    def voltage(self, value):
-        self.write('')
+    def voltage(self, ch, value):
+        vals = self.query('APP:VOLT?').split(',')
+        vals = list(map(float, vals))
+        vals[ch-1] = value
+        self.write('APP:VOLT {:.6f},{:.6f},{:.6f}'.format(*vals))
+
+    @DictFeat(units='A', keys=CHANNELS)
+    def current(self, ch):
+        vals = self.query('APP:CURR?').split(',')
+        return float(vals[ch-1])
+
+    @current.setter
+    def current(self, ch, value):
+        vals = self.query('APP:CURR?').split(',')
+        vals = list(map(float, vals))
+        vals[ch-1] = value
+        self.write('APP:CURR {:.6f},{:.6f},{:.6f}'.format(*vals))
+
+    @DictFeat(values={False: '0', True: '1'}, keys=CHANNELS)
+    def output(self, ch):
+        self.channel = ch
+        return self.query('CHAN:OUTP?')
+
+    @output.setter
+    def output(self, ch, value):
+        self.channel = ch
+        self.write('CHAN:OUTP {}'.format(value))
+
+    @Action()
+    def all_on(self):
+        self.write('OUTP 1')
+
+    @Action()
+    def all_off(self):
+        self.write('OUTP 0')
 
     @Feat(units='V')
     def voltage_limit(self):

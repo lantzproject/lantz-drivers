@@ -17,6 +17,6 @@
 from .tds2024b import TDS2024
 from .tds1012 import TDS1012
 from .tds1002b import TDS1002b
+from .awg5000 import AWG5000, AWGState
 
-__all__ = ['TDS2024', 'TDS1002b', 'TDS1012']
-
+__all__ = ['TDS2024', 'TDS1002b', 'TDS1012', 'AWG5000']

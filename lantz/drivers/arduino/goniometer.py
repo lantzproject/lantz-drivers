@@ -78,7 +78,7 @@ class Goniometer(MessageBasedDriver):
 	def phi(self, val):
 		return self.query('phi {}'.format(val))
 
-	@Feat(units='mm', limits=(0., 250.))
+	@Feat(units='mm', limits=(0., 100.))
 	def R(self):
 		return float(self.query('raxis?'))
 
