@@ -7,17 +7,13 @@
     :license: BSD, see LICENSE for more details.
 """
 
+from lantz.core import Action, Feat, MessageBasedDriver, errors
 from pyvisa import constants
-
-from lantz import Action, Feat
-from lantz import MessageBasedDriver
-from lantz import errors
 
 
 class NanoScanZ(MessageBasedDriver):
     """Driver for the NanoScanZ Nano Focusing Piezo Stage from Prior.
     """
-
 
     DEFAULTS = {'ASRL': {'write_termination': '\n',
                          'read_termination': '\n',
@@ -27,14 +23,13 @@ class NanoScanZ(MessageBasedDriver):
                          'stop_bits': constants.StopBits.one,
                          'encoding': 'ascii',
                          'timeout': 2000
-                        }}
+                         }}
 
     #: flow control flags
-    #RTSCTS = False
-    #DSRDTR = False
-    #XONXOFF = False
+    # RTSCTS = False
+    # DSRDTR = False
+    # XONXOFF = False
 
-    
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         """Send query to the stage and return the answer, after handling
         possible errors.
@@ -56,8 +51,8 @@ class NanoScanZ(MessageBasedDriver):
                 raise errors.InstrumentError('Invalid checksum')
 
         return ans
-    
-    @Feat(values={9600,19200,38400})
+
+    @Feat(values={9600, 19200, 38400})
     def device_baudrate(self):
         """Reports and sets the baud rate.
         NOTE: DO NOT change the baud rate of the Piezo controller when daisy chained to ProScan.
@@ -68,20 +63,19 @@ class NanoScanZ(MessageBasedDriver):
     def device_baudrate(self, value):
         self.query('BAUD {}'.format(value))
 
-
     @Feat(values={True: '4', False: '00000'})
     def moving(self):
         """Returns the movement status, 0 stationary, 4 moving
         """
         return self.query('$')
-    
+
     @Feat(read_once=True)
     def idn(self):
         """Identification of the device
         """
-        return self.query('DATE') +' '+ self.query('SERIAL')
-    
-    @Feat(units = 'micrometer')
+        return self.query('DATE') + ' ' + self.query('SERIAL')
+
+    @Feat(units='micrometer')
     def position(self):
         """Gets and sets current position.
         If the value is set to z = 0, the display changes to REL 0 (relative display mode). To return to ABS mode use inst.move_absolute(0) and then inst.position = 0. Thus, the stage will return to 0 micrometers and the display screen will switch to ABS mode.
@@ -91,22 +85,20 @@ class NanoScanZ(MessageBasedDriver):
     @position.setter
     def position(self, value):
         self.query('PZ {}'.format(value))
-    
+
     @Action()
     def zero_position(self):
         """Move to zero including any position redefinitions done by the position Feat
         """
         self.query('M')
-    
-    
-    @Action(units = 'micrometer', limits=(100,))
+
+    @Action(units='micrometer', limits=(100,))
     def move_absolute(self, value):
         """Move to absolute position n, range (0,100).
         This is a "real" absolute position and is independent of any relative offset added by the position Feat.
         """
         self.query('V {}'.format())
-    
-    
+
     @Action()
     def move_relative(self, value):
         """ 
@@ -140,14 +132,13 @@ class NanoScanZ(MessageBasedDriver):
                     self.query('D {}'.format(-value.magnitude))
             elif value.units == 'steps':
                 if value.magnitude > 0:
-                    for x in range(0,value.magnitude):
+                    for x in range(0, value.magnitude):
                         self.query('U')
                 elif value.magnitude < 0:
-                    for x in range(0,-value.magnitude):
+                    for x in range(0, -value.magnitude):
                         self.query('D')
         except:
-            raise ValueError('Specify the translation distance in micrometers or steps') 
-    
+            raise ValueError('Specify the translation distance in micrometers or steps')
 
     @Feat(units='micrometer')
     def step(self):
@@ -156,21 +147,21 @@ class NanoScanZ(MessageBasedDriver):
         return self.query('C')
 
     @step.setter
-    def step (self, value):
+    def step(self, value):
         self.query('C {}'.format(value))
-    
-    
-    
+
     @Feat(read_once=True)
     def software_version(self):
         """Software version
-        """  
+        """
         return self.query('VER')
+
 
 class NanoScanZ_chained(NanoScanZ):
     """This is needed when the NanoScanZ controller is connected
     to a ProScanII controller through its RS-232-2 input
     """
+
     def write(self, command, termination=None, encoding=None):
         super().send('<' + command, termination=termination, encoding=encoding)
 
@@ -193,14 +184,16 @@ if __name__ == '__main__':
     with NanoScanZ.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             from lantz import Q_
+
             # Add your test code here
             print('Non interactive mode')
-            
+
             um = Q_(1, 'micrometer')
-            
+
             print(inst.idn)
             print(inst.moving)
             print(inst.position)

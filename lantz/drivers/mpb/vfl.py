@@ -7,10 +7,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
+from lantz.core import Action, Feat, MessageBasedDriver
 from pyvisa import constants
-
-from lantz import Action, Feat
-from lantz import MessageBasedDriver
 
 
 class VFL(MessageBasedDriver):
@@ -24,12 +22,12 @@ class VFL(MessageBasedDriver):
                          'parity': constants.Parity.none,
                          'stop_bits': constants.StopBits.one,
                          'encoding': 'ascii',
-                        }}
+                         }}
 
     #: flow control flags
-    #RTSCTS = False
-    #DSRDTR = False
-    #XONXOFF = False
+    # RTSCTS = False
+    # DSRDTR = False
+    # XONXOFF = False
 
     @Feat(read_once=True)
     def idn(self):
@@ -185,6 +183,7 @@ class VFL(MessageBasedDriver):
     def tune_shg_stop(self):
         self.query('SETSHGCMD 2')
 
+
 if __name__ == '__main__':
     import argparse
     import lantz.log
@@ -200,6 +199,7 @@ if __name__ == '__main__':
     with VFL.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.qtwidgets import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here

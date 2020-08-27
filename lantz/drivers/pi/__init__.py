@@ -15,4 +15,4 @@
 
 from .piezo import Piezo, parse_line, parse_multi
 
-__all__ = ['Piezo','parse_line','parse_multi']
+__all__ = ['Piezo', 'parse_line', 'parse_multi']

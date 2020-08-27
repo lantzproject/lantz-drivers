@@ -1,9 +1,7 @@
-from lantz import Feat, DictFeat, Action
-from lantz.messagebased import MessageBasedDriver
-
 from collections import OrderedDict
-
 from time import sleep
+
+from lantz.core import Action, Feat, MessageBasedDriver
 
 
 class SR7265(MessageBasedDriver):
@@ -34,86 +32,86 @@ class SR7265(MessageBasedDriver):
     }
 
     INT_EXT_REF = OrderedDict([
-                   ('Internal', 0),
-                   ('Rear External', 1),
-                   ('External', 2)
-                   ])
+        ('Internal', 0),
+        ('Rear External', 1),
+        ('External', 2)
+    ])
 
     TIME_CONSTANTS = OrderedDict([
-                     ('10 us' , 0  ),
-                     ('20 us' , 1  ),
-                     ('40 us' , 2  ),
-                     ('80 us' , 3  ),
-                     ('160 us', 4  ),
-                     ('320 us', 5  ),
-                     ('640 us', 6  ),
-                     ('5 ms'  , 7  ),
-                     ('10 ms' , 8  ),
-                     ('20 ms' , 9  ),
-                     ('50 ms' , 10 ),
-                     ('100 ms', 11 ),
-                     ('200 ms', 12 ),
-                     ('500 ms', 13 ),
-                     ('1 s'   , 14 ),
-                     ('2 s'   , 15 ),
-                     ('5 s'   , 16 ),
-                     ('10 s'  , 17 ),
-                     ('20 s'  , 18 ),
-                     ('50 s'  , 19 ),
-                     ('100 s' , 20 ),
-                     ('200 s' , 21 ),
-                     ('500 s' , 22 ),
-                     ('1 ks'  , 23 ),
-                     ('2 ks'  , 24 ),
-                     ('5 ks'  , 25 ),
-                     ('10 ks' , 26 ),
-                     ('20 ks' , 27 ),
-                     ('50 ks' , 28 ),
-                     ('100 ks', 29 ),
-                     ])
+        ('10 us', 0),
+        ('20 us', 1),
+        ('40 us', 2),
+        ('80 us', 3),
+        ('160 us', 4),
+        ('320 us', 5),
+        ('640 us', 6),
+        ('5 ms', 7),
+        ('10 ms', 8),
+        ('20 ms', 9),
+        ('50 ms', 10),
+        ('100 ms', 11),
+        ('200 ms', 12),
+        ('500 ms', 13),
+        ('1 s', 14),
+        ('2 s', 15),
+        ('5 s', 16),
+        ('10 s', 17),
+        ('20 s', 18),
+        ('50 s', 19),
+        ('100 s', 20),
+        ('200 s', 21),
+        ('500 s', 22),
+        ('1 ks', 23),
+        ('2 ks', 24),
+        ('5 ks', 25),
+        ('10 ks', 26),
+        ('20 ks', 27),
+        ('50 ks', 28),
+        ('100 ks', 29),
+    ])
 
     AC_GAINS = OrderedDict([
-               ('0 dB', 0),
-               ('10 dB', 1),
-               ('20 dB', 2),
-               ('30 dB', 3),
-               ('40 dB', 4),
-               ('50 dB', 5),
-               ('60 dB', 6),
-               ('70 dB', 7),
-               ('80 dB', 8),
-               ('90 dB', 9),
-               ])
+        ('0 dB', 0),
+        ('10 dB', 1),
+        ('20 dB', 2),
+        ('30 dB', 3),
+        ('40 dB', 4),
+        ('50 dB', 5),
+        ('60 dB', 6),
+        ('70 dB', 7),
+        ('80 dB', 8),
+        ('90 dB', 9),
+    ])
 
     SENSITIVITIES = OrderedDict([
-                    ('2 nV',   1  ),
-                    ('5 nV',   2  ),
-                    ('10 nV',  3  ),
-                    ('20 nV',  4  ),
-                    ('50 nV',  5  ),
-                    ('100 nV', 6  ),
-                    ('200 nV', 7  ),
-                    ('500 nV', 8  ),
-                    ('1 uV',   9  ),
-                    ('2 uV',   10 ),
-                    ('5 uV',   11 ),
-                    ('10 uV',  12 ),
-                    ('20 uV',  13 ),
-                    ('50 uV',  14 ),
-                    ('100 uV', 15 ),
-                    ('200 uV', 16 ),
-                    ('500 uV', 17 ),
-                    ('1 mV',   18 ),
-                    ('2 mV',   19 ),
-                    ('5 mV',   20 ),
-                    ('10 mV',  21 ),
-                    ('20 mV',  22 ),
-                    ('50 mV',  23 ),
-                    ('100 mV', 24 ),
-                    ('200 mV', 25 ),
-                    ('500 mV', 26 ),
-                    ('1 V',    27 ),
-                    ])
+        ('2 nV', 1),
+        ('5 nV', 2),
+        ('10 nV', 3),
+        ('20 nV', 4),
+        ('50 nV', 5),
+        ('100 nV', 6),
+        ('200 nV', 7),
+        ('500 nV', 8),
+        ('1 uV', 9),
+        ('2 uV', 10),
+        ('5 uV', 11),
+        ('10 uV', 12),
+        ('20 uV', 13),
+        ('50 uV', 14),
+        ('100 uV', 15),
+        ('200 uV', 16),
+        ('500 uV', 17),
+        ('1 mV', 18),
+        ('2 mV', 19),
+        ('5 mV', 20),
+        ('10 mV', 21),
+        ('20 mV', 22),
+        ('50 mV', 23),
+        ('100 mV', 24),
+        ('200 mV', 25),
+        ('500 mV', 26),
+        ('1 V', 27),
+    ])
 
     def remove_null(self, value):
         value = value.replace('\x00', '')
@@ -222,8 +220,6 @@ class SR7265(MessageBasedDriver):
         Set current AC gain (dB)
         """
         self.write('ACGAIN{}'.format(gain_value))
-
-
 
     @Feat(values=SENSITIVITIES)
     def sensitivity(self):
@@ -344,6 +340,7 @@ class SR7265(MessageBasedDriver):
     @y_offset.setter
     def y_offset(self, val):
         return self.write('YOF 1 {}'.format(val))
+
 
 if __name__ == '__main__':
     with SR7265.via_gpib(7) as inst:

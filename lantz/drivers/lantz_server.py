@@ -12,28 +12,31 @@
     Date: 05/24/2018
 """
 
-import socketserver
 import pickle
-import codecs
-from lantz import Driver, Q_, Feat, DictFeat, Action
 import socket
-import time
+import socketserver
 import sys
+import time
 from importlib import import_module
+
+from lantz.core import Action, DictFeat, Feat, Q_
+
 
 def encode_data(data, protocol=None):
     data = pickle.dumps(data, protocol=protocol)
     if len(data) > 9999999999:
         raise OverflowError
-    out = bytearray("{:010}".format(len(data)),'ascii')
+    out = bytearray("{:010}".format(len(data)), 'ascii')
     out.extend(data)
     return out
 
+
 def msg_complete(data):
-    if len(data)<10:
+    if len(data) < 10:
         return False
     length = int(data[:10])
     return len(data) == (length + 10)
+
 
 def decode_data(data):
     if not msg_complete(data):
@@ -47,10 +50,11 @@ def decode_data(data):
         obj = Q_(str(obj))
     return obj
 
+
 def receive_all(recv_fun, timeout):
     start = time.time()
     data = bytearray()
-    while (time.time()-start)<timeout:
+    while (time.time() - start) < timeout:
         buf = recv_fun(1024)
         data.extend(buf)
         if msg_complete(data):
@@ -58,22 +62,26 @@ def receive_all(recv_fun, timeout):
     raise TimeoutError
 
 
-VALID_TYPES = {'Feat':Feat, 'Action':Action, 'DictFeat':DictFeat}
+VALID_TYPES = {'Feat': Feat, 'Action': Action, 'DictFeat': DictFeat}
 VALID_QUERY = ['SET', 'GET']
-def build_query(property_type, property_name, query_type='GET',val=None, args=[], kwargs={}, key=None):
+
+
+def build_query(property_type, property_name, query_type='GET', val=None, args=[], kwargs={}, key=None):
     if not property_type in VALID_TYPES:
         raise Exception('Invalid property type')
     if not query_type in VALID_QUERY:
         raise Exception('Invalid query type')
     if property_type == 'Feat':
-        return {'property_type':property_type, 'property_name':property_name, 'query_type':query_type, 'val':val}
+        return {'property_type': property_type, 'property_name': property_name, 'query_type': query_type, 'val': val}
     if property_type == 'DictFeat':
-        return {'property_type':property_type, 'property_name':property_name, 'query_type':query_type, 'val':val, 'args':args, 'kwargs':kwargs, 'key':key}
+        return {'property_type': property_type, 'property_name': property_name, 'query_type': query_type, 'val': val,
+                'args': args, 'kwargs': kwargs, 'key': key}
     if property_type == 'Action':
-        return {'property_type':property_type, 'property_name':property_name, 'args':args, 'kwargs':kwargs}
+        return {'property_type': property_type, 'property_name': property_name, 'args': args, 'kwargs': kwargs}
+
 
 def exec_query(dev, query):
-    #TODO Add some input checks
+    # TODO Add some input checks
     if query['property_type'] == 'Feat':
         if query['query_type'] == 'SET':
             try:
@@ -102,10 +110,10 @@ def exec_query(dev, query):
     else:
         print('Unsupported')
         return build_reply(error='Unsupported')
-    
+
+
 def build_reply(error=None, msg=None):
-    return {'error':error, 'msg':msg}
-        
+    return {'error': error, 'msg': msg}
 
 
 class Lantz_Server(socketserver.TCPServer):
@@ -121,12 +129,13 @@ class Lantz_Server(socketserver.TCPServer):
 
         super().__init__((host, port), Lantz_Handler)
 
+
 # class Lantz_Base_Client(Driver):
 #     def __init__(self, host, port, timeout=1):
 #         self.host = host
 #         self.port = port
 #         self.timeout = timeout
-                
+
 
 #     def query(self, data):
 #         #Initialize and send query
@@ -142,19 +151,21 @@ class Lantz_Server(socketserver.TCPServer):
 
 
 class Device_Client():
-    def __new__(cls, device_driver_class, host, port, timeout=1, allow_initialize_finalize=True):
+    def __new__(cls, device_driver_class, host, port, timeout=1, allow_initialize_finalize=False):
         if type(device_driver_class) is str:
             class_name = device_driver_class.split('.')[-1]
-            mod = import_module(device_driver_class.replace('.'+class_name, ''))
+            mod = import_module(device_driver_class.replace('.' + class_name, ''))
             device_driver_class = getattr(mod, class_name)
-        
+
         class Device_Client_Instance(device_driver_class):
             __name__ = '_Device_Client.' + device_driver_class.__name__
             __qualname__ = 'Device_Client.' + device_driver_class.__name__
             _allow_initialize_finalize = allow_initialize_finalize
+
             def initialize(self):
                 if self._allow_initialize_finalize:
                     self._initialize()
+
             def finalize(self):
                 if self._allow_initialize_finalize:
                     self._finalize()
@@ -163,15 +174,14 @@ class Device_Client():
                 self.host = host
                 self.port = port
                 self.timeout = timeout
-                
 
             def query(self, data):
-                #Initialize and send query
+                # Initialize and send query
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect((self.host, self.port))
                 sock.sendall(encode_data(data))
 
-                #Read back ans from the server
+                # Read back ans from the server
                 ans = receive_all(sock.recv, self.timeout)
 
                 sock.close()
@@ -186,6 +196,7 @@ class Device_Client():
                             raise reply['error']
                         else:
                             return reply['msg']
+
                     return f_
 
                 def set_fun(_feat_name):
@@ -195,9 +206,11 @@ class Device_Client():
                             raise reply['error']
                         else:
                             return reply['msg']
-                    return f_  
+
+                    return f_
+
                 setattr(Device_Client_Instance, feat_name, property(get_fun(feat_name), set_fun(feat_name)))
-            #TODO implement DictFeat
+            # TODO implement DictFeat
             else:
                 continue
         for action_name, action in device_driver_class._lantz_actions.items():
@@ -208,17 +221,18 @@ class Device_Client():
                         raise reply['error']
                     else:
                         return reply['msg']
+
                 return f_
+
             if action_name in ['initialize', 'finalize']:
-                setattr(Device_Client_Instance, '_'+action_name, execute(action_name))
+                setattr(Device_Client_Instance, '_' + action_name, execute(action_name))
             else:
                 setattr(Device_Client_Instance, action_name, execute(action_name))
 
-        
-                    
         obj = Device_Client_Instance.__new__(Device_Client_Instance)
         obj.__init__(host, port, timeout=timeout)
         return obj
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9999

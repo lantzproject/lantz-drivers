@@ -11,12 +11,11 @@
 """
 
 import serial
-
-from lantz import Driver
-from lantz.drivers.legacy.textual import TextualMixin
-from lantz.errors import LantzTimeoutError
-
+from lantz.core import Driver
+from lantz.core.errors import LantzTimeoutError
 from serial import SerialTimeoutException
+
+from lantz.drivers.legacy.textual import TextualMixin
 
 
 class LantzSerialTimeoutError(SerialTimeoutException, LantzTimeoutError):

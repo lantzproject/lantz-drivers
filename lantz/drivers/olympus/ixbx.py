@@ -21,12 +21,8 @@
     :license: BSD, see LICENSE for more details.
 
 """
-
+from lantz.core import Action, Feat, MessageBasedDriver, Q_, errors
 from pyvisa import constants
-
-from lantz import Feat, Action, Q_
-from lantz import errors
-from lantz import MessageBasedDriver
 
 # Physical units used by the IX/BX microscopes
 DECIVOLT = Q_(0.1, 'V')
@@ -42,6 +38,7 @@ FH_FRM = {True: 'FH', False: 'FRM'}
 EPI_DIA = {True: 'EPI', False: 'DIA'}
 
 INTSTR = (int, str)
+
 
 def ofeat(command, doc, **kwargs):
     """Build Feat
@@ -71,8 +68,7 @@ class IXBX(MessageBasedDriver):
                          'parity': constants.Parity.even,
                          'stop_bits': constants.StopBits.one,
                          'encoding': 'ascii',
-                        }}
-
+                         }}
 
     def initialize(self):
         super().initialize()
@@ -103,7 +99,7 @@ class IXBX(MessageBasedDriver):
         return self.query('1UNIT?')
 
     fluo_shutter = ofeat('1LED',
-                        'External shutter for the fluorescent light source',
+                         'External shutter for the fluorescent light source',
                          values=ONE_ZERO)
 
     lamp_epi_enabled = ofeat('1LMPSEL',
@@ -116,15 +112,15 @@ class IXBX(MessageBasedDriver):
 
     lamp_intensity = ofeat('1LMP',
                            'Transmitted light intensity',
-                           procs=(INTSTR, ))
+                           procs=(INTSTR,))
 
     def lamp_status(self):
-        #LMPSTS OK, X
+        # LMPSTS OK, X
         pass
 
     objective = ofeat('1OB',
                       'Objective nosepiece position',
-                      procs=(INTSTR, ))
+                      procs=(INTSTR,))
 
     body_locked = ofeat('1LOG',
                         'Turn the currently selected lamp on and off',
@@ -144,14 +140,13 @@ class IXBX(MessageBasedDriver):
         self.query('2NEARLMT {:d}'.format(near))
         self.query('2FARLMT {:d}'.format(far))
 
-
     move_to_start_enabled = ofeat('INITRET',
                                   'Sets / cancels returning operation to the start '
                                   'position after initializing the origin.',
                                   values=ON_OFF)
 
     jog_enabled = ofeat('JOG', 'Jog enabled', values=ON_OFF)
-    jog_sensitivity = ofeat('JOGSNS',' Jog sensitivity', procs=(INTSTR, ))
+    jog_sensitivity = ofeat('JOGSNS', ' Jog sensitivity', procs=(INTSTR,))
     jog_dial = ofeat('JOGSEL', 'Jog selection (Handle/BLA) ???', values=FH_FRM)
     jog_limit_enabled = ofeat('joglmt', 'Jog limit enabled', values=ON_OFF)
 
@@ -197,7 +192,7 @@ class IXBX(MessageBasedDriver):
     def init_origin(self):
         """Init origin
         """
-        #INITORG
+        # INITORG
         pass
 
 
@@ -210,10 +205,10 @@ class IX2(IXBX):
     shutter1_closed = ofeat('SHUT1', 'Shutter', values=IN_OUT)
     shutter2_closed = ofeat('SHUT2', 'Shutter', values=IN_OUT)
 
-    filter_wheel = ofeat('FW', 'Filter wheel position', procs=(INTSTR, ))
-    condensor = ofeat('CD', 'Condensor position', procs=(INTSTR, ))
-    mirror_unit = ofeat('MU', 'Mirror unit position', procs=(INTSTR, ))
-    camera_port_enabled= ofeat('PRISM', 'Prism position', values=ONE_TWO)
+    filter_wheel = ofeat('FW', 'Filter wheel position', procs=(INTSTR,))
+    condensor = ofeat('CD', 'Condensor position', procs=(INTSTR,))
+    mirror_unit = ofeat('MU', 'Mirror unit position', procs=(INTSTR,))
+    camera_port_enabled = ofeat('PRISM', 'Prism position', values=ONE_TWO)
 
 
 class BX2A(IXBX):
@@ -221,10 +216,9 @@ class BX2A(IXBX):
     """
 
     shutter_closed = ofeat('SHUTTER', 'Shutter RFAA', values=IN_OUT)
-    aperture_stop_diameter = ofeat('EAS', 'Aperture stop diameter (EPI AS RLAA)', procs=(INTSTR, ))
-    aperture_stop_diameter = ofeat('DAS', 'Aperture stop diameter (DIA AS UCD)', procs=(INTSTR, ))
+    aperture_stop_diameter = ofeat('EAS', 'Aperture stop diameter (EPI AS RLAA)', procs=(INTSTR,))
+    aperture_stop_diameter = ofeat('DAS', 'Aperture stop diameter (DIA AS UCD)', procs=(INTSTR,))
     condenser_top_lens_enabled = ofeat('CDTOP', 'Condenser top lens (UCD)', values=IN_OUT)
-    turret = ofeat('TURRET', 'Turret position (UCD)', procs=(INTSTR, ))
-    cube = ofeat('CUBE', 'Cube position (RFAA/RLAA)', procs=(INTSTR, ))
-    configure_filterwheel = ofeat('FW', 'Configure filterwheel', procs=(INTSTR, ))
-
+    turret = ofeat('TURRET', 'Turret position (UCD)', procs=(INTSTR,))
+    cube = ofeat('CUBE', 'Cube position (RFAA/RLAA)', procs=(INTSTR,))
+    configure_filterwheel = ofeat('FW', 'Configure filterwheel', procs=(INTSTR,))

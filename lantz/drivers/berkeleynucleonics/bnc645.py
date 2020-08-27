@@ -1,8 +1,7 @@
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat, Q_
+from lantz.core import Feat, MessageBasedDriver
+
 
 class BNC645(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\n',

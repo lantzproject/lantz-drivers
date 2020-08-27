@@ -16,8 +16,8 @@
 
 import enum
 
-from lantz.core import Feat, Action, MessageBasedDriver
-from lantz.core.mfeats import BoolFeat, QuantityFeat, QuantityDictFeat, EnumFeat
+from lantz.core import Action, Feat, MessageBasedDriver
+from lantz.core.mfeats import BoolFeat, QuantityFeat
 
 
 class A2023a(MessageBasedDriver):
@@ -27,9 +27,94 @@ class A2023a(MessageBasedDriver):
     DEFAULTS = {'ASRL': {'write_termination': '\n',
                          'read_termination': chr(256)}}
 
-    #: Carrier frequency.
-    frequency = QuantityFeat(('CFRQ?', ':CFRQ:VALUE {0:f};{_}'),
-                             'CFRQ:VALUE {0:f}HZ', units='Hz')
+    @Feat(read_once=True)
+    def idn(self):
+        """Instrument identification.
+        """
+        return self.parse_query('*IDN?',
+                                format='{manufacturer:s},{model:s},{serialno:s},{softno:s}')
+
+    @Feat(read_once=True)
+    def fitted_options(self):
+        """Fitted options.
+        """
+        return self.query('*OPT?').split(',')
+
+    @Action()
+    def reset(self):
+        """Set the instrument functions to the factory default power up state.
+        """
+        self.write('*RST')
+
+    @Action()
+    def self_test(self):
+        """Is the interface and processor are operating?
+        """
+        return self.query('*TST?') == '0'
+
+    @Action()
+    def wait(self):
+        """Inhibit execution of an overlapped command until the execution of
+        the preceding operation has been completed.
+        """
+        self.write('*WAI')
+
+    @Action()
+    def trigger(self):
+        """Equivalent to Group Execute Trigger.
+        """
+        self.write('*TRG')
+
+    @Feat()
+    def status_byte(self):
+        """Status byte, a number between 0-255.
+        """
+        return int(self.query('*STB?'))
+
+    @Feat()
+    def service_request_enabled(self):
+        """Service request enable register.
+        """
+        return int(self.query('*SRE?'))
+
+    @service_request_enabled.setter
+    def service_request_enabled(self, value):
+        self.query('*SRE {0:d}'.format(value))
+
+    @Feat()
+    def event_status_reg(self):
+        """Standard event enable register.
+        """
+        return int(self.query('*ESR?'))
+
+    @event_status_reg.setter
+    def event_status_reg(self, value):
+        self.query('*ESR {0:d}'.format(value))
+
+    @Feat()
+    def event_status_enabled(self):
+        """Standard event enable register.
+        """
+        return int(self.query('*ESR?'))
+
+    @event_status_enabled.setter
+    def event_status_enabled(self, value):
+        self.query('*ESR {0:d}'.format(value))
+
+    @Action()
+    def clear_status(self):
+        self.write('*CLS')
+
+    @Feat(units='Hz')
+    def frequency(self):
+        """Carrier frequency.
+        """
+        return self.parse_query('CFRQ?',
+                                format=':CFRQ:VALUE {0:f};{_}')
+
+    @frequency.setter
+    def frequency(self, value):
+        self.write('CFRQ:VALUE {0:f}HZ'.format(value))
 
     #: RF amplitude.
     amplitude = QuantityFeat(('RFLV?', ':RFLV:UNITS {_};TYPE {_};VALUE {0:f};INC {_};<status>'),
@@ -55,6 +140,14 @@ class A2023a(MessageBasedDriver):
 
     #: Set RF output level max.
     rflimit = QuantityFeat('RFLV:LIMIT?', 'RFLV:LIMIT {}')
+
+    @Feat(values={True: 'ENABLED', False: 'DISABLED'})
+    def rflimit_enabled(self):
+        return self.query('*RFLV:LIMIT?')
+
+    @rflimit_enabled.setter
+    def rflimit_enabled(self, value):
+        self.query('RFLV:LIMIT:{}'.format(value))
 
     def remote(self, value):
         if value:
@@ -104,6 +197,7 @@ if __name__ == '__main__':
     with A2023a.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             print(inst.idn)
@@ -113,10 +207,9 @@ if __name__ == '__main__':
             inst.freq = 41.006
             print(inst.rflevel)
             inst.rflevel = -13
-            inst.phase=0
+            inst.phase = 0
             print(inst.phase)
-            inst.phase=30
+            inst.phase = 30
             print(inst.phase)
-            inst.phase=60
+            inst.phase = 60
             print(inst.phase)
-

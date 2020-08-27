@@ -13,7 +13,7 @@
     - create same API as lantz.drivers.basler
 
 
-    Author: Vasco Tenner
+    Author: Vasco Tenner, Alex Bourassa, and Kevin Miao
     Date: 20181204
 
     TODO:
@@ -23,19 +23,20 @@
     - Dynamically set available values for feats
 """
 
-from lantz.driver import Driver
-from lantz import Feat, DictFeat, Action
-from pymba import Vimba
-import numpy as np
 import threading
 import time
 
+import numpy as np
+from lantz.core import Driver
+from pymba import Vimba
+
+from lantz import Action, Feat
 
 beginner_controls = ['ExposureTimeAbs', 'GainRaw', 'Width', 'Height',
                      'OffsetX', 'OffsetY']
 aliases = {'exposure_time': 'ExposureTimeAbs',
            'gain': 'GainRaw',
-          }
+           }
 
 
 def todict(listitems):
@@ -62,12 +63,14 @@ def attach_dyn_propr(instance, prop_name, propr):
 def create_getter(p):
     def tmpfunc(self):
         return self.cam[p]
+
     return tmpfunc
 
 
 def create_setter(p):
     def tmpfunc(self, val):
         self.cam[p] = val
+
     return tmpfunc
 
 

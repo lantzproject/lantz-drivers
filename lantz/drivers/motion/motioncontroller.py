@@ -12,17 +12,10 @@
 
 """
 
-import time
-import numpy as np
+from lantz.core import Action, Driver, Feat
 
-from lantz.feat import Feat
-from lantz.action import Action
-from lantz.driver import Driver
-from pyvisa import constants
-from lantz import Q_, ureg
-from lantz.processors import convert_to
+from .axis import MotionAxisSingle
 
-from .axis import MotionAxisSingle, MotionAxisMultiple
 
 #  Add generic units:
 # ureg.define('unit = unit')
@@ -34,6 +27,7 @@ class MotionControllerMultiAxis(Driver):
     """ Motion controller that can detect multiple axis
 
     """
+
     def initialize(self):
         super().initialize()
 
@@ -96,10 +90,10 @@ class MotionControllerMultiAxis(Driver):
         super().finalize()
 
 
-
 class MotionControllerSingleAxis(MotionAxisSingle):
     """ Motion controller that can only has sinlge axis
 
     """
+
     def initialize(self):
         super().initialize()

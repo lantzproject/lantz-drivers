@@ -7,11 +7,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
+from lantz.core import Feat, MessageBasedDriver, errors
 from pyvisa import constants
-
-from lantz import Feat
-from lantz import MessageBasedDriver
-from lantz import errors
 
 
 class MiniLasEvo(MessageBasedDriver):
@@ -25,12 +22,12 @@ class MiniLasEvo(MessageBasedDriver):
                          'parity': constants.Parity.none,
                          'stop_bits': constants.StopBits.one,
                          'encoding': 'ascii'
-                        }}
+                         }}
 
     #: flow control flags
-    #RTSCTS = False
-    #DSRDTR = False
-    #XONXOFF = False
+    # RTSCTS = False
+    # DSRDTR = False
+    # XONXOFF = False
 
     def query(self, command, *, send_args=(None, None),
               recv_args=(None, None)):
@@ -197,6 +194,7 @@ class MiniLasEvo(MessageBasedDriver):
     def power(self, value):
         self.query('P={:.1f}'.format(value))
 
+
 if __name__ == '__main__':
     import argparse
     import lantz.log
@@ -212,6 +210,7 @@ if __name__ == '__main__':
     with MiniLasEvo(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here
@@ -222,4 +221,3 @@ if __name__ == '__main__':
             inst.power = 0
             print(inst.idn)
             """
-

@@ -10,26 +10,23 @@
 
 """
 
-from lantz import Action, Feat, DictFeat, Q_
-from lantz.errors import InstrumentError, LantzTimeoutError
-from lantz.messagebased import MessageBasedDriver
-
-from pyvisa.constants import Parity, StopBits
-
 import time
 
-class Wltf(MessageBasedDriver):
+from lantz.core import Action, Feat, MessageBasedDriver, Q_
+from pyvisa.constants import Parity, StopBits
 
+
+class Wltf(MessageBasedDriver):
     DEFAULTS = {
         'ASRL': {
             'write_termination': '\r\n',
             'read_termination': '\r\n',
             'baud_rate': 115200,
             'timeout': 2000,
-            'parity':Parity.none,
-            'stop_bits':StopBits.one,
+            'parity': Parity.none,
+            'stop_bits': StopBits.one,
         }
-    }   
+    }
 
     def query(self, cmd, delay=0.01):
         self.write(cmd)
@@ -56,7 +53,7 @@ class Wltf(MessageBasedDriver):
     @Action()
     def run_frequency_calibration(self):
         return self.query('FC')
-    
+
     @Feat()
     def step(self):
         s = self.query('S?').split(',')[0]
@@ -79,6 +76,3 @@ class Wltf(MessageBasedDriver):
     @wavelength.setter
     def wavelength(self, val):
         return self.query('WL{}'.format(val))
-
-
-        

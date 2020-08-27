@@ -1,9 +1,10 @@
-from PyQt5 import QtCore
 import ctypes
 
-from lantz.driver import Driver
+from PyQt5 import QtCore
+from lantz.core import Driver
 
 xinput = ctypes.windll.xinput9_1_0
+
 
 class XINPUT_GAMEPAD(ctypes.Structure):
     _fields_ = [
@@ -16,11 +17,13 @@ class XINPUT_GAMEPAD(ctypes.Structure):
         ('r_thumb_y', ctypes.c_short),
     ]
 
+
 class XINPUT_STATE(ctypes.Structure):
     _fields_ = [
         ('packet_number', ctypes.c_ulong),
         ('gamepad', XINPUT_GAMEPAD),
     ]
+
 
 class XINPUT_VIBRATION(ctypes.Structure):
     _fields_ = [
@@ -28,14 +31,16 @@ class XINPUT_VIBRATION(ctypes.Structure):
         ('wRightMotorSpeed', ctypes.c_ushort),
     ]
 
+
 def val_to_bits(value, nbits=16):
     return [int(v) for v in bin(value)[2:].zfill(nbits)]
+
 
 ERROR_DEVICE_NOT_CONNECTED = 1167
 ERROR_SUCCESS = 0
 
-class _XInputController(QtCore.QObject):
 
+class _XInputController(QtCore.QObject):
     max_devices = 4
 
     on_axis = QtCore.pyqtSignal(str, float)
@@ -90,7 +95,7 @@ class _XInputController(QtCore.QObject):
             self.handle_changed_state(state)
         self._last_state = state
         return
-        
+
     def handle_changed_state(self, state):
         self.dispatch_axis_events(state)
         self.dispatch_button_events(state)
@@ -130,6 +135,7 @@ class _XInputController(QtCore.QObject):
         shutdown_f = shutdown_f_type(xinput._handle + offset)
         shutdown_f(self.device_number)
         return
+
 
 class XInputController(Driver):
 

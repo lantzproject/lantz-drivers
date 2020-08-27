@@ -12,21 +12,14 @@
 
 """
 
+import time
 
-from lantz.feat import Feat
-from lantz.action import Action
 import pyvisa
+from lantz.core import Action, Feat, MessageBasedDriver
 from pyvisa import constants
 
-from lantz import Q_, ureg
-from lantz.processors import convert_to
-from lantz.messagebased import MessageBasedDriver
-
-from lantz.drivers.newport_motion.motion import MotionAxis
 from lantz.drivers.motion import MotionControllerMultiAxis
-
-import time
-import numpy as np
+from lantz.drivers.newport_motion.motion import MotionAxis
 
 ERRORS = {"@": "",
           "A": "Unknown message code or floating point controller address.",
@@ -53,7 +46,7 @@ positioner_errors = {
     0b0000000100: 'Peak current limit',
     0b0000000010: 'Positive end of run',
     0b0000000001: 'Negative end of run',
-                    }
+}
 controller_states = {
     '0A': 'NOT REFERENCED from reset.',
     '0B': 'NOT REFERENCED from HOMING.',
@@ -76,7 +69,7 @@ controller_states = {
     '3E': 'DISABLE from JOGGING.',
     '46': 'JOGGING from READY.',
     '47': 'JOGGING from DISABLE.',
-                    }
+}
 
 
 class SMC100(MessageBasedDriver, MotionControllerMultiAxis):
@@ -116,19 +109,19 @@ class SMC100(MessageBasedDriver, MotionControllerMultiAxis):
     """
 
     DEFAULTS = {
-                'COMMON': {'write_termination': '\r\n',
-                           'read_termination': '\r\n', },
-                'ASRL': {
-                    'timeout': 100,  # ms
-                    'encoding': 'ascii',
-                    'data_bits': 8,
-                    'baud_rate': 57600,
-                    'parity': constants.Parity.none,
-                    'stop_bits': constants.StopBits.one,
-                    #'flow_control': constants.VI_ASRL_FLOW_NONE,
-                    'flow_control': constants.VI_ASRL_FLOW_XON_XOFF,  # constants.VI_ASRL_FLOW_NONE,
-                    },
-                }
+        'COMMON': {'write_termination': '\r\n',
+                   'read_termination': '\r\n', },
+        'ASRL': {
+            'timeout': 100,  # ms
+            'encoding': 'ascii',
+            'data_bits': 8,
+            'baud_rate': 57600,
+            'parity': constants.Parity.none,
+            'stop_bits': constants.StopBits.one,
+            # 'flow_control': constants.VI_ASRL_FLOW_NONE,
+            'flow_control': constants.VI_ASRL_FLOW_XON_XOFF,  # constants.VI_ASRL_FLOW_NONE,
+        },
+    }
 
     def __init__(self, *args, **kwargs):
         self.motionaxis_class = kwargs.pop('motionaxis_class', MotionAxisSMC100)
@@ -173,9 +166,7 @@ class SMC100(MessageBasedDriver, MotionControllerMultiAxis):
                     axis = self.motionaxis_class(self, i, idn)
                     self.axes.append(axis)
 
-            
 
-    
 class MotionAxisSMC100(MotionAxis):
     def query(self, command, *, send_args=(None, None),
               recv_args=(None, None)):
@@ -262,9 +253,9 @@ class MotionAxisSMC100(MotionAxis):
     def get_errors(self):
         ret = self.query('TE?')
         err = ERRORS.get(ret, 'Error {}. Lookup in manual: https://www.newpor'
-                         't.com/medias/sys_master/images/images/h11/he1/91171'
-                         '82525470/SMC100CC-SMC100PP-User-s-Manual.pdf'
-                         ''.format(ret))
+                              't.com/medias/sys_master/images/images/h11/he1/91171'
+                              '82525470/SMC100CC-SMC100PP-User-s-Manual.pdf'
+                              ''.format(ret))
         if err:
             self.log_error('Axis {} error: {}'.format(self.num, err))
         return err
@@ -331,6 +322,7 @@ if __name__ == '__main__':
     import lantz
     import visa
     import lantz.drivers.newport_motion
+
     sm = lantz.drivers.newport_motion.SMC100
     rm = visa.ResourceManager('@py')
     lantz.messagebased._resource_manager = rm
@@ -338,11 +330,11 @@ if __name__ == '__main__':
     print(lantz.messagebased._resource_manager.list_resources())
 
     with sm(args.port) as inst:
-    #with sm.via_serial(port=args.port) as inst:
+        # with sm.via_serial(port=args.port) as inst:
         inst.idn
         # inst.initialize() # Initialize the communication with the power meter
         # Find the status of all axes:
-        #for axis in inst.axes:
-        #    print('Axis {} Position {} is_on {} max_velocity {} velocity {}'.format(axis.num, axis.position,
-        #                                                                            axis.is_on, axis.max_velocity,
-        #                                                                            axis.velocity))
+    # for axis in inst.axes:
+    #    print('Axis {} Position {} is_on {} max_velocity {} velocity {}'.format(axis.num, axis.position,
+    #                                                                            axis.is_on, axis.max_velocity,
+    #                                                                            axis.velocity))

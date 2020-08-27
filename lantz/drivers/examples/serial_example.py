@@ -9,17 +9,15 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat, DictFeat
-from lantz import MessageBasedDriver
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 class SerialTemplate(MessageBasedDriver):
     """Template for drivers connecting via serial port.
     """
 
-
     DEFAULTS = {'ASRL': {'write_termination': '\n',
-                                'read_termination': '\n'}}
+                         'read_termination': '\n'}}
 
     @Feat()
     def a_read_only_property(self):
@@ -37,7 +35,7 @@ class SerialTemplate(MessageBasedDriver):
     def a_read_write_property(self, value):
         self.query('!AMP {:.1f}'.format(value))
 
-    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1, 9)))
     def a_read_write_dictionary_property(self, key):
         """Help for a_read_write_dictionary_property
         """
@@ -69,9 +67,8 @@ if __name__ == '__main__':
     with SerialTemplate(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here
             print('Non interactive mode')
-
-

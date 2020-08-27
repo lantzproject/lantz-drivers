@@ -1,12 +1,11 @@
-from lantz import Feat, DictFeat, Action
-from lantz.driver import Driver
 from collections import OrderedDict
-import time
-import ripy
+
 import numpy as np
+import ripy
+from lantz.core import Action, Driver, Feat
+
 
 class RI(Driver):
-
     gain_values = OrderedDict([
         ('High', True),
         ('Low', False),
@@ -22,7 +21,7 @@ class RI(Driver):
         self._ripy = ripy.Device()
         self._ripy.open()
 
-    @Feat(units = "Hz")
+    @Feat(units="Hz")
     def sample_rate(self):
         return self._ripy.samplerate
 
@@ -30,7 +29,7 @@ class RI(Driver):
     def usb_speed(self):
         return self._ripy.usb_speed
 
-    @Feat(values = gain_values)
+    @Feat(values=gain_values)
     def gain(self):
         """
         Get the current gain setting
@@ -45,13 +44,12 @@ class RI(Driver):
         """
         self._ripy.set_highgain(gain_value)
 
-    @Feat(values = antialias_values)
+    @Feat(values=antialias_values)
     def antialias(self):
         """
         Get the current antialias setting
         """
         return self._ripy.antialias
-
 
     @antialias.setter
     def antialias(self, antialias_value):
@@ -68,16 +66,14 @@ class RI(Driver):
         """
         return self._ripy.get_raw_data(nsamples)
 
-
     @Action()
     def get_triggered_data(self, nsamples, ntimes=1, key="T"):
         """
         Get n many samples ntimes many trigger detects a rising edge
         """
-        total = nsamples*ntimes
-        raw_return = self._ripy.get_raw_data(total, trig_port = key, trig_mode = "rising", samples_per_trigger = nsamples)
+        total = nsamples * ntimes
+        raw_return = self._ripy.get_raw_data(total, trig_port=key, trig_mode="rising", samples_per_trigger=nsamples)
         if ntimes == 1:
             return raw_return
         else:
-            return np.hsplit(raw_return,ntimes)
-
+            return np.hsplit(raw_return, ntimes)

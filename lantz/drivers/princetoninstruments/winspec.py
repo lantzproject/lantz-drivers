@@ -7,16 +7,14 @@
     Date: 29/08/2017
 """
 
-from collections import OrderedDict
-from lantz import Action, Feat, DictFeat, Q_
-from lantz.messagebased import MessageBasedDriver
 import json
-import numpy as np
+from collections import OrderedDict
 
+import numpy as np
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver, Q_
 
 
 class Winspec(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '',
@@ -25,13 +23,13 @@ class Winspec(MessageBasedDriver):
     }
 
     GRATINGS = OrderedDict([
-        (1,1),
-        (2,2)
+        (1, 1),
+        (2, 2)
     ])
 
     CALIBRATION_PARAMS = OrderedDict([
         (1, {
-            "d": 1./600.,
+            "d": 1. / 600.,
             "gamma": 0.479941,
             "fl": 304.223,
             "delta": -0.00882795,
@@ -49,7 +47,7 @@ class Winspec(MessageBasedDriver):
             "dl2": 0.0000550113
         }),
         ("constants", {
-            "pwidth" : 25.e-3,
+            "pwidth": 25.e-3,
             "center_pixel": 512.5,
             "m": 1
         })
@@ -72,7 +70,7 @@ class Winspec(MessageBasedDriver):
     def wavelength(self, wl):
         if self.query("set wavelength {:1.3e}".format(wl)) != "OK":
             raise Exception
-        
+
     @Feat(values=GRATINGS)
     def grating(self):
         return int(self.query("get grating"))
@@ -81,8 +79,8 @@ class Winspec(MessageBasedDriver):
     def grating(self, wl):
         if self.query("set grating {:1.3e}".format(wl)) != "OK":
             raise Exception
-    
-    @Feat(units="kelvin", limits=(174,248))
+
+    @Feat(units="kelvin", limits=(174, 248))
     def target_temperature(self):
         temp_c = float(self.query("get target temperature"))
         result = Q_(temp_c, "degC").to("kelvin").magnitude
@@ -129,7 +127,7 @@ class Winspec(MessageBasedDriver):
 
         x_array = np.array(range(1024)) + 1
         x_array = x_array - center_pixel + dpixel + dl1 * (center_wl - 1000.0) + dl2 * (center_wl - 1000.0) * (
-        center_wl - 1000.0)
+                center_wl - 1000.0)
         xi = np.arctan(x_array * pwidth * np.cos(delta) / (fl + x_array * pwidth * np.sin(delta)))
         psi = np.arcsin(m * center_wl * 1.0e-6 / (2.0 * d * np.cos(gamma / 2.0)))
         wl = (d / m) * (np.sin(psi - gamma / 2.0) + np.sin(psi + gamma / 2.0 + xi)) * 1.0e6

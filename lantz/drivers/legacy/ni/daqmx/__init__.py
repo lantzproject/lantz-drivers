@@ -23,9 +23,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .base import System, Task, Channel, Device
+from .base import Channel, Device, System, Task
 from .channels import *
-from .tasks import *
 from .constants import Constants, Types
-
-
+from .tasks import *

@@ -11,9 +11,10 @@
 
 import socket
 
-from lantz import Driver
+from lantz.core import Driver
+from lantz.core.errors import LantzTimeoutError
+
 from lantz.drivers.legacy.textual import TextualMixin
-from lantz.errors import LantzTimeoutError
 
 
 class LantzSocketTimeoutError(socket.timeout, LantzTimeoutError):
@@ -83,4 +84,3 @@ class TCPDriver(TCPRawDriver, TextualMixin):
     SEND_TERMINATION = '\n'
 
     RECV_CHUNK = 1024
-

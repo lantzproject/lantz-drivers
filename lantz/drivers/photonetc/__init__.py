@@ -11,8 +11,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-
-from .lltf import PhotonEtcComm
-from .lltf import PhotonEtcFilter
+from .lltf import PhotonEtcComm, PhotonEtcFilter
 
 __all__ = ['PhotonEtcComm', 'PhotonEtcFilter']

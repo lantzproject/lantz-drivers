@@ -7,7 +7,6 @@
     Date: 29/08/2017
 """
 
-
 from .winspec import Winspec
 
 __all__ = ['Winspec']

@@ -8,28 +8,25 @@
     Date: 24/03/2016
 """
 import numpy as _np
+from lantz.core import Action, Feat, MessageBasedDriver
+from lantz.core.feat import MISSING
 
-from lantz import Feat, DictFeat, Action
-from lantz.feat import MISSING
-from lantz.errors import InstrumentError
-from lantz.messagebased import MessageBasedDriver
 
 class E8364B(MessageBasedDriver):
     """E8364B Network Analyzer
     """
 
-
     DEFAULTS = {'COMMON': {'write_termination': '\n',
                            'read_termination': '\n',
-                           'timeout':10000,}}
+                           'timeout': 10000, }}
 
     @Feat(read_once=True)
     def idn(self):
         return self.query('*IDN?')
 
-# ----------------------------------------------------
-#       Sweep Settings functions
-# ----------------------------------------------------
+    # ----------------------------------------------------
+    #       Sweep Settings functions
+    # ----------------------------------------------------
 
     @Feat(units='Hz')
     def center_frequency(self):
@@ -40,7 +37,6 @@ class E8364B(MessageBasedDriver):
     @center_frequency.setter
     def center_frequency(self, value):
         self.write('SENS:FREQ:CENT {}'.format(int(value)))
-
 
     @Feat(units='Hz')
     def span(self):
@@ -73,6 +69,7 @@ class E8364B(MessageBasedDriver):
         self.write('SENS:SWE:POIN {}'.format(int(points)))
 
     ALLOWED_MEAS_TYPE = {"S11", "S12", "S21", "S22"}
+
     @Feat(values=ALLOWED_MEAS_TYPE)
     def meas_type(self):
         return self.get_measurement_catalog()['CH1_S11_1']
@@ -81,10 +78,9 @@ class E8364B(MessageBasedDriver):
     def meas_type(self, meas_type):
         self.write("CALC:PAR:MOD {}".format(meas_type))
 
-
-# ----------------------------------------------------
-#       Power functions
-# ----------------------------------------------------
+    # ----------------------------------------------------
+    #       Power functions
+    # ----------------------------------------------------
 
     @Feat(values={True: 1, False: 0})
     def power_on(self):
@@ -119,9 +115,9 @@ class E8364B(MessageBasedDriver):
     #     else:       state_str = 'OFF'
     #     self.write('OUTP:MAN:NOIS ' + state_str)
 
-#----------------------------------------------------
-#       Averaging functions
-#----------------------------------------------------
+    # ----------------------------------------------------
+    #       Averaging functions
+    # ----------------------------------------------------
 
     @Feat(values={True: 1, False: 0})
     def average_on(self):
@@ -133,7 +129,7 @@ class E8364B(MessageBasedDriver):
     def average_on(self, state=True):
         self.write('SENS:AVER:STAT {}'.format(state))
 
-    @Feat(limits=(1,65536, 1))
+    @Feat(limits=(1, 65536, 1))
     def average_count(self):
         """Averaging count
         """
@@ -149,12 +145,10 @@ class E8364B(MessageBasedDriver):
         """
         self.write('SENS:AVER:CLE')
 
-
-
-#----------------------------------------------------
-#       Data Query functions
-#----------------------------------------------------
-    @Feat(values={"REAL32":"REAL,+32", "REAL64":"REAL,+64", "ASCII":"ASC,+0"})
+    # ----------------------------------------------------
+    #       Data Query functions
+    # ----------------------------------------------------
+    @Feat(values={"REAL32": "REAL,+32", "REAL64": "REAL,+64", "ASCII": "ASC,+0"})
     def data_format(self):
         return self.query("FORM:DATA?")
 
@@ -182,38 +176,36 @@ class E8364B(MessageBasedDriver):
     @Action()
     def y_data(self):
         data = self.query_data("CALC:DATA? SDATA")
-        data = data[::2]+data[1::2]*1j
+        data = data[::2] + data[1::2] * 1j
         return data
 
-
-# ----------------------------------------------------
-#       Traces and Channel functions (Complicates the remote use of the device
-#       so don't use unless you know what you are doing...)
-#       For simplicity, we will always use CH1 and parameter name 'CH1_S11_1'
-# ----------------------------------------------------
+    # ----------------------------------------------------
+    #       Traces and Channel functions (Complicates the remote use of the device
+    #       so don't use unless you know what you are doing...)
+    #       For simplicity, we will always use CH1 and parameter name 'CH1_S11_1'
+    # ----------------------------------------------------
     def clear_all_traces(self):
         self.write('SYST:FPR')
         self.write('DISP:WIND:STAT ON')
 
     def create_new_measurement(self, name='CH1_S11_1', meas_type="S11"):
-        if not meas_type in self.ALLOWED_MEAS_TYPE: raise Exception("Invalid meas_type: "+str(meas_type))
-        self.write("CALC:PAR:DEF '"+name+"',"+meas_type)
-        self.write("DISP:WIND:TRAC:FEED '"+name+"'")
-
+        if not meas_type in self.ALLOWED_MEAS_TYPE: raise Exception("Invalid meas_type: " + str(meas_type))
+        self.write("CALC:PAR:DEF '" + name + "'," + meas_type)
+        self.write("DISP:WIND:TRAC:FEED '" + name + "'")
 
     def get_measurement_catalog(self):
-        response = self.query("CALC:PAR:CAT?").translate({ord('"'):None}).split(',')
+        response = self.query("CALC:PAR:CAT?").translate({ord('"'): None}).split(',')
         ans = dict()
-        for i in range(int(len(response)/2)):
-            ans[response[2*i]]=response[2*i+1]
+        for i in range(int(len(response) / 2)):
+            ans[response[2 * i]] = response[2 * i + 1]
         return ans
 
     def select_measurement(self, name):
         self.write("CALC:PAR:SEL '{}'".format(name))
 
-# ----------------------------------------------------
-#       Misc. functions
-# ----------------------------------------------------
+    # ----------------------------------------------------
+    #       Misc. functions
+    # ----------------------------------------------------
 
     @Action()
     def initialize(self):
@@ -225,18 +217,3 @@ class E8364B(MessageBasedDriver):
 
         self.select_measurement('CH1_S11_1')
         self.data_format = 'REAL64'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

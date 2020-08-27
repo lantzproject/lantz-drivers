@@ -13,8 +13,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, DictFeat, Action
-from lantz import MessageBasedDriver
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 def logged(func):
@@ -28,8 +27,7 @@ class Lambda103(MessageBasedDriver):
 
     DEFAULTS = {'ASRL': {'write_termination': '',
                          'read_termination': '',
-                        }}
-
+                         }}
 
     def initialize(self):
         super().initialize()
@@ -57,7 +55,7 @@ class Lambda103(MessageBasedDriver):
                 w = 0 -> Filter wheels A and C
                 w = 1 -> Fliter wheel B
         """
-        command = chr( key * 128 + self.speed * 14 + value)
+        command = chr(key * 128 + self.speed * 14 + value)
         self.send(command)
 
     @Action()
@@ -65,7 +63,7 @@ class Lambda103(MessageBasedDriver):
         """Power on all motors."""
         self.send(chr(206))
         return "Motors ON"
-    
+
     @Action()
     def status(self):
         return "Status {}".format(self.query(chr(204)))
@@ -96,9 +94,11 @@ if __name__ == '__main__':
     with Lambda103(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             from time import sleep
+
             inst.remote = True
 
             inst.open_A = True
@@ -107,11 +107,10 @@ if __name__ == '__main__':
 
             sleep(1)
             for i in range(9):
-                fw.position['A']= i
+                fw.position['A'] = i
                 sleep(1)
 
             sleep(1)
             inst.remote = False
 
             fw.open_A = False
-

@@ -9,23 +9,22 @@
     :license: BSD, see LICENSE for more details.
 """
 
-
 import struct
-import numpy as np
 
+import numpy as np
+from lantz.core import DictFeat, Feat
 from pyvisa.errors import VisaIOError
 
-from lantz import Feat, DictFeat
 from lantz.drivers.legacy.usb import USBDriver, usb_find_desc
 
 __all__ = ['USB4000']
 
 commands = {
-    0x01: ('init', 'initialize USB4000'), 
-    0x02: ('set_i', 'set integration time in uS'), 
-    0x03: ('set_strobe', 'set strobe enable status'), 
-    0x05: ('ask', 'query information'), 
-    0x06: ('write', 'write information'), 
+    0x01: ('init', 'initialize USB4000'),
+    0x02: ('set_i', 'set integration time in uS'),
+    0x03: ('set_strobe', 'set strobe enable status'),
+    0x05: ('ask', 'query information'),
+    0x06: ('write', 'write information'),
     0x09: ('get_spectra', 'request spectra'),
     0x0A: ('set_trigger', 'set trigger mode'),
     0x0B: ('num_plugins', 'query number of plug-in accessories present'),
@@ -64,7 +63,7 @@ config_regs = {
     16: 'USB4000_config',
     17: 'autonull',
     18: 'baud_rate'
-}   
+}
 
 
 class USB4000(USBDriver):
@@ -110,37 +109,37 @@ class USB4000(USBDriver):
         resp = bytearray(self.usb_recv_ep.read(64, timeout=1000))
 
         # Check that proper echo is returned
-        assert resp[0:2] == bytearray([0x05, position]) 
+        assert resp[0:2] == bytearray([0x05, position])
 
-        config.update({config_regs[x] : resp[2:].decode('ascii', errors='ignore').strip('\x00')})
-            
+        config.update({config_regs[x]: resp[2:].decode('ascii', errors='ignore').strip('\x00')})
+
         return config
-            
+
     def reset(self):
         self.usb.reset()
 
     @Feat(units='degree_celsius')
     def pcb_temperature(self):
         cmd = struct.pack('<B', 0x6C)
-        self.usb_send_ep.write(cmd)        
+        self.usb_send_ep.write(cmd)
         resp = bytearray(self.usb_recv_ep.read(3, timeout=1000))
-        
+
         # Check that proper echo is returned
-        assert resp[0:1] == bytearray([0x08]) 
-        
+        assert resp[0:1] == bytearray([0x08])
+
         t = struct.unpack('<h', resp[1:3])[0]
         return t * 0.003906
-    
+
     @Feat(read_once=True)
     def firmware_version(self):
         cmd = struct.pack('<2B', 0x6B, 0x04)
         self.usb_send_ep.write(cmd)
-        
+
         resp = bytearray(self.usb_recv_ep.read(3, timeout=200))
         log.debug('got {:s}'.format(repr(resp)))
-        
-        assert resp[0:1] == bytearray([0x04]) # Check that proper echo is returned
-        
+
+        assert resp[0:1] == bytearray([0x04])  # Check that proper echo is returned
+
         vers = struct.unpack('>H', resp[1:3])[0]
         log.info('firmware is {:d}'.format(vers))
         return vers
@@ -156,12 +155,12 @@ class USB4000(USBDriver):
         cmd = struct.pack('<B', 0x09)
         self.log_debug('Requesting spectra')
         self.usb_send_ep.write(cmd)
-        
+
         data = np.zeros(shape=(3840,), dtype='<u2')
-        
+
         try:
-            data_lo = self._spec_lo.read(512*4, timeout=100)
-            data_hi = self._spec_hi.read(512*11, timeout=100)
+            data_lo = self._spec_lo.read(512 * 4, timeout=100)
+            data_hi = self._spec_hi.read(512 * 11, timeout=100)
 
             data_sync = self._spec_hi.read(1, timeout=100)
 
@@ -194,5 +193,5 @@ class USB4000(USBDriver):
             'packet_count': struct.unpack('<B', resp[11:12])[0],
             'usb_speed': struct.unpack('<B', resp[14:15])[0]
         }
-        
+
         return stat

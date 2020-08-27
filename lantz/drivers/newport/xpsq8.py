@@ -11,8 +11,8 @@
     Date: 12/16/2015
 """
 
-from lantz.driver import Driver
-from lantz import Feat, DictFeat, Action
+from lantz.core import Action, DictFeat, Driver
+
 # try:
 #     from . import XPS_Q8_drivers
 # except SystemError:
@@ -21,7 +21,6 @@ from . import XPS_Q8_drivers
 
 
 class XPSQ8(Driver):
-
     channels = {'X', 'Y', 'Z'}
 
     def __init__(self, address, port=5001, timeout=20.0):
@@ -65,16 +64,16 @@ class XPSQ8(Driver):
     def jog(self, channel, velocity, acceleration):
         retval = self._xps.GroupJogParametersSet(self._socket_id, channel, [velocity], [acceleration])
 
+
 def main():
     import logging
     import sys
     from lantz.log import log_to_screen
-    import numpy as np
     log_to_screen(logging.CRITICAL)
     res_name = sys.argv[1]
     with XPSQ8(res_name) as inst:
         value = inst._xps.GroupJogParametersGet(inst._socket_id, 'Group1.Pos', 1)
-        ret = inst._xps.GroupJogParametersSet(inst._socket_id, 'Group2.Pos', [-0.0,], [1.0,])
+        ret = inst._xps.GroupJogParametersSet(inst._socket_id, 'Group2.Pos', [-0.0, ], [1.0, ])
         print(ret)
         value = inst._xps.GroupJogParametersGet(inst._socket_id, 'Group2.Pos', 1)
         print(value)
@@ -84,6 +83,7 @@ def main():
             print(val)
             inst.abs_position['Group1.Pos'] = val
             print(inst.abs_position['Group1.Pos'])
+
 
 if __name__ == '__main__':
     main()

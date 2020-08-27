@@ -16,4 +16,3 @@
 from .aotf import MDSnC
 
 __all__ = ['MDSnC', ]
-

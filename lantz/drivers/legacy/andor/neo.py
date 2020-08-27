@@ -14,15 +14,14 @@
     :license: BSD, see LICENSE for more details.
 """
 
-
 import ctypes as ct
 
 import numpy as np
-
-from lantz import Feat, Action, Q_
-from lantz.foreign import RetStr, RetTuple
+from lantz.core import Action, Feat
+from lantz.core.foreign import RetStr
 
 from .andor import Andor
+
 
 class Neo(Andor):
     """Neo Andor CMOS Camera
@@ -32,7 +31,7 @@ class Neo(Andor):
         super().initialize()
         self.flush()
         self.fan_speed = 1
-        self.width ,self.height = self.sensor_size
+        self.width, self.height = self.sensor_size
         self.length = self.width * self.height
         self.clock_rate = 100
         self.pixel_encoding = 32
@@ -48,7 +47,7 @@ class Neo(Andor):
     @Feat()
     def sensor_size(self):
         width = self.getint("SensorWidth")
-        height = self.getint("SensorHeight")        
+        height = self.getint("SensorHeight")
         return width, height
 
     @Feat(None, values={100: '100 MHz', 200: '200 MHz', 280: '280 MHz'})
@@ -58,7 +57,7 @@ class Neo(Andor):
         self.setenumstring("PixelReadoutRate", value)
 
     @Feat(None)
-    def fan_peed(self, value = 1):
+    def fan_peed(self, value=1):
         """Fan speed.
         """
         self.setenumerated("FanSpeed", value)

@@ -1,10 +1,6 @@
-from lantz import Feat, DictFeat, Action
-from lantz.messagebased import MessageBasedDriver
-from pyvisa import constants
-
+from lantz.core import Action, Feat, MessageBasedDriver
 from numpy import ceil
-
-from time import sleep
+from pyvisa import constants
 
 
 class HindsPEM90(MessageBasedDriver):
@@ -47,7 +43,6 @@ class HindsPEM90(MessageBasedDriver):
         print('E:{}'.format(status))
         return self.query('E:{}'.format(status))
 
-
     @Feat(limits=waves_limits)
     def wavelength(self):
         """
@@ -68,7 +63,7 @@ class HindsPEM90(MessageBasedDriver):
         """
         Reads out current retardation in wave units
         """
-        return float(self.query('R')/1000.0)
+        return float(self.query('R') / 1000.0)
 
     @retardation.setter
     def retardation(self, wave_units):
@@ -76,7 +71,7 @@ class HindsPEM90(MessageBasedDriver):
         Sets retardation in wave units.
         """
         print('R:{}'.format(wave_units))
-        return self.query('R:{0:04}'.format(ceil(wave_units*1000)))
+        return self.query('R:{0:04}'.format(ceil(wave_units * 1000)))
 
     @Feat()
     def frequency(self):
@@ -114,7 +109,7 @@ class HindsPEM90(MessageBasedDriver):
         """
         return self.query('Z')
 
+
 if __name__ == '__main__':
     with HindsPEM90.via_serial(10) as inst:
-
         echo = 'off'

@@ -9,9 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, DictFeat, Action
-from lantz import errors
-from lantz import MessageBasedDriver
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver, errors
 
 
 class LantzSignalGenerator(MessageBasedDriver):
@@ -20,7 +18,6 @@ class LantzSignalGenerator(MessageBasedDriver):
 
     DEFAULTS = {'COMMON': {'write_termination': '\n',
                            'read_termination': '\n'}}
-
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         answer = super().query(command, send_args=send_args, recv_args=recv_args)
@@ -80,7 +77,7 @@ class LantzSignalGenerator(MessageBasedDriver):
     def waveform(self, value):
         self.query('!WVF {}'.format(value))
 
-    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1, 9)))
     def dout(self, key):
         """Digital output state.
         """
@@ -90,7 +87,7 @@ class LantzSignalGenerator(MessageBasedDriver):
     def dout(self, key, value):
         self.query('!DOU {} {}'.format(key, value))
 
-    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1, 9)))
     def din(self, key):
         """Digital input state.
         """

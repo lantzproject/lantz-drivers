@@ -20,10 +20,12 @@
     :license: BSD, see LICENSE for more details.
 """
 
-#TODO: Implement calibrated power.
+# TODO: Implement calibrated power.
 
-from lantz import Feat, DictFeat
+from lantz.core import DictFeat, Feat
+
 from lantz.drivers.legacy.serial import SerialDriver
+
 
 class MDSnC(SerialDriver):
     """MDSnC synthesizer for AOTF.nC
@@ -77,17 +79,17 @@ if __name__ == '__main__':
     with MDSnC(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             from time import sleep
+
             print("init")
             freq = 130
-            inst.power(4,10)
+            inst.power(4, 10)
             sleep(0.2)
-            inst.enabled(4,1)
+            inst.enabled(4, 1)
             sleep(1.2)
-            inst.enabled(4,0)
+            inst.enabled(4, 0)
             sleep(1.2)
-            inst.enabled(4,1)
-
-
+            inst.enabled(4, 1)

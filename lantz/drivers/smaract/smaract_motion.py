@@ -13,37 +13,34 @@
 
 """
 
-
-from lantz.feat import Feat
-from lantz.action import Action
-from lantz.messagebased import MessageBasedDriver
-from pyvisa import constants
-from lantz import Q_, ureg
-from lantz.processors import convert_to
-from lantz.drivers.motion import MotionAxisMultiple, MotionControllerMultiAxis, BacklashMixing
 import time
-import numpy as np
+
+from lantz.core import Action, Feat, MessageBasedDriver
+from pyvisa import constants
+
+from lantz.drivers.motion import BacklashMixing, MotionAxisMultiple, MotionControllerMultiAxis
 
 formats = {'one_param': ''}
+
 
 class SCU(MessageBasedDriver, MotionControllerMultiAxis):
     """ Driver for SCU controller with multiple axis
 
     """
     DEFAULTS = {
-                'COMMON': {'write_termination': '\n',
-                           'read_termination': '\n', },
-                'ASRL': {
-                    'timeout': 100,  # ms
-                    'encoding': 'ascii',
-                    'data_bits': 8,
-                    'baud_rate': 9600,
-                    'parity': constants.Parity.none,
-                    'stop_bits': constants.StopBits.one,
-                    #'flow_control': constants.VI_ASRL_FLOW_NONE,
-                    'flow_control': constants.VI_ASRL_FLOW_XON_XOFF,  # constants.VI_ASRL_FLOW_NONE,
-                    },
-                }
+        'COMMON': {'write_termination': '\n',
+                   'read_termination': '\n', },
+        'ASRL': {
+            'timeout': 100,  # ms
+            'encoding': 'ascii',
+            'data_bits': 8,
+            'baud_rate': 9600,
+            'parity': constants.Parity.none,
+            'stop_bits': constants.StopBits.one,
+            # 'flow_control': constants.VI_ASRL_FLOW_NONE,
+            'flow_control': constants.VI_ASRL_FLOW_XON_XOFF,  # constants.VI_ASRL_FLOW_NONE,
+        },
+    }
 
     def initialize(self):
         super().initialize()
@@ -51,11 +48,11 @@ class SCU(MessageBasedDriver, MotionControllerMultiAxis):
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         return MotionControllerMultiAxis.query(self, ':{}'.format(command),
-                                 send_args=send_args, recv_args=recv_args)
+                                               send_args=send_args, recv_args=recv_args)
 
     def write(self, command, *args, **kwargs):
-        return MotionControllerMultiAxis.write(self,':{}'.format(command),
-                                 *args, **kwargs)
+        return MotionControllerMultiAxis.write(self, ':{}'.format(command),
+                                               *args, **kwargs)
 
     @Feat()
     def idn(self):
@@ -133,7 +130,6 @@ class MotionAxis(MotionAxisMultiple, BacklashMixing):
 
         # First do move to extra position if necessary
         self._set_position(pos, wait=self.wait_until_done)
-
 
     def __set_position(self, pos):
         """

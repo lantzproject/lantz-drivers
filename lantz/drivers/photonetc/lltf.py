@@ -1,21 +1,15 @@
-from lantz import Driver, Feat, DictFeat, Action
-
 import ctypes as ct
+from ctypes import POINTER, byref, c_char_p, c_double, c_int, c_void_p, create_string_buffer
 
-from ctypes import c_char_p, c_void_p, c_int, c_double, POINTER, byref, create_string_buffer
-
-from collections import Iterable, OrderedDict
+from lantz.core import DictFeat, Driver, Feat
 
 
 class PhotonEtcComm():
 
-
     def __init__(self):
-
         # this should point to the location of the DLL
         dll_loc = 'D:\\Code\\Github\\lantz\\lantz\\drivers\\photonetc\\PE_Filter_SDK.dll'
         self.config_dir = 'C:\\Program Files (x86)\\Photon etc\\PHySpecV2\\Devices\\'
-
 
         # Uses WinDLL to load the dll file
         self.lib = ct.WinDLL(dll_loc)
@@ -56,27 +50,24 @@ class PhotonEtcComm():
         self.lib.PE_SetWavelengthOnGrating.argtypes = [c_void_p, c_int, c_double]
         self.lib.PE_GetGrating.argtypes = [c_void_p, POINTER(c_int)]
 
-
-
     def __del__(self):
         """
         Calls C garbage collection methods from Python in order to close the LLTF
         communication module, and avoid issues with recollecting.
         """
-        #self.destroy()
+        # self.destroy()
 
     def getLibraryVersion(self):
         """
         Returns the version of the library used by the software.
         """
-        value =  hex(self.lib.PE_GetLibraryVersion())
+        value = hex(self.lib.PE_GetLibraryVersion())
 
         # code to decode bit shifted string into version
         major = int(value[2:-4], 16)
         minor = int(value[-4:-2], 16)
         bugfix = int(value[-2:], 16)
         return '{}.{}.{}'.format(major, minor, bugfix)
-
 
     def create(self, system):
         """
@@ -100,7 +91,6 @@ class PhotonEtcComm():
         status = self.lib.PE_Destroy(pe_handle)
         return status
 
-
     def getSystemName(self, pe_handle, index=0):
         """
 
@@ -112,20 +102,15 @@ class PhotonEtcComm():
 
         return systemname.value.decode('utf-8'), status
 
-
     def openSystem(self, pe_handle, systemname):
-
         status = self.lib.PE_Open(pe_handle, systemname.encode())
         return status
 
     def closeSystem(self, pe_handle):
-
         status = self.lib.PE_Close(pe_handle)
         return status
 
-
     def getWavelength(self, pe_handle):
-
         wavelength = c_double()
 
         status = self.lib.PE_GetWavelength(pe_handle, byref(wavelength))
@@ -133,22 +118,17 @@ class PhotonEtcComm():
         return wavelength.value, status
 
     def setWavelength(self, pe_handle, wavelength):
-
         status = self.lib.PE_SetWavelength(pe_handle, wavelength)
 
         return status
 
-
     def getWavelengthRange(self, pe_handle):
-
         min_wavelength = c_double()
         max_wavelength = c_double()
 
         status = self.lib.PE_GetWavelengthRange(pe_handle, byref(min_wavelength), byref(max_wavelength))
 
         return (min_wavelength.value, max_wavelength.value), status
-
-
 
     def statusCode(self, code):
         """
@@ -158,7 +138,7 @@ class PhotonEtcComm():
         """
 
         # this doesn't seem to work - not sure why, but appears to return garbage.
-        #self.lib.PE_GetStatusStr(code)
+        # self.lib.PE_GetStatusStr(code)
 
         STATUS_CODES = {
             0: 'Successful operation',
@@ -175,10 +155,9 @@ class PhotonEtcComm():
             11: 'Unsupported filter configuration.',
             12: 'Filter connection error: no filter is connected.'
         }
-        #status_str = self.lib.PE_GetStatusStr(code)
+        # status_str = self.lib.PE_GetStatusStr(code)
 
         return STATUS_CODES[code]
-
 
 
 class PhotonEtcFilter(Driver):
@@ -197,7 +176,6 @@ class PhotonEtcFilter(Driver):
         """
 
         if not user_name:
-
             user_name = system_name
 
         # create PE_Filter
@@ -234,7 +212,6 @@ class PhotonEtcFilter(Driver):
         Closes the connections to PE filters and the PE filter library.
         """
         for key in list(self.filters.keys()):
-
             f = self.filters.pop(key)
             print('Closing time!')
             self.remove_filter(f)
@@ -246,7 +223,7 @@ class PhotonEtcFilter(Driver):
         """
         return self.comm.getLibraryVersion()
 
-    @DictFeat(units='nm')#, keys=FILTERS)
+    @DictFeat(units='nm')  # , keys=FILTERS)
     def wavelength(self, filter_name):
         """
         Returns the filter wavelength in nanometers. Prints an error message
@@ -259,10 +236,10 @@ class PhotonEtcFilter(Driver):
         min_nm, max_nm = self.wavelength_range['IR']
 
         if min_nm <= wavelength <= max_nm:
-
             return wavelength
 
-        print('Invalid wavelength {}nm for {}, must lie between {}nm and {}nm'.format(wavelength, filter_name, min_nm, max_nm))
+        print('Invalid wavelength {}nm for {}, must lie between {}nm and {}nm'.format(wavelength, filter_name, min_nm,
+                                                                                      max_nm))
 
     @wavelength.setter
     def wavelength(self, filter_name, nm):
@@ -277,13 +254,11 @@ class PhotonEtcFilter(Driver):
         min_nm, max_nm = self.wavelength_range[filter_name]
 
         if min_nm <= nm <= max_nm:
-
             return self.comm.setWavelength(handle, nm)
 
         print('Invalid wavelength {}nm for {}, must lie between {}nm and {}nm'.format(nm, filter_name, min_nm, max_nm))
 
-
-    @DictFeat(read_once = True)
+    @DictFeat(read_once=True)
     def wavelength_range(self, filter_name):
         """
         Returns the wavelength range of the specified filter.
@@ -292,7 +267,6 @@ class PhotonEtcFilter(Driver):
 
         wavelength_range, status = self.comm.getWavelengthRange(handle)
         return wavelength_range
-
 
 
 def test():
@@ -308,11 +282,10 @@ def test():
 
     print('Library version: {}'.format(lltf.lib_verision))
 
-    system_list = ['M000010133']  #,'M000010161']
+    system_list = ['M000010133']  # ,'M000010161']
     filter_name = 'IR'
 
     for f in system_list:
-
         lltf.add_filter(f, user_name=filter_name)
 
         print('Wavelength range: {}'.format(lltf.wavelength_range[filter_name]))
@@ -334,8 +307,6 @@ def test():
         lltf.wavelength[filter_name] = 400.0
 
     lltf.finalize()
-
-
 
 
 if __name__ == "__main__":

@@ -14,16 +14,13 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 from fnmatch import fnmatch
 
 import usb
-from usb.util import (get_string as usb_get_string,
-                      find_descriptor as usb_find_desc)
-
-from lantz import Driver
-from lantz.errors import LantzTimeoutError, InstrumentError
-
+from lantz.core import Driver
+from lantz.core.errors import LantzTimeoutError
+from usb.util import (find_descriptor as usb_find_desc, get_string as usb_get_string)
 
 ClassCodes = {
     0x00: ('Device', 'Use class information in the Interface Descriptors'),
@@ -128,7 +125,7 @@ class LantzUSBTimeoutError(usb.core.USBError, LantzTimeoutError):
 def ep_attributes(ep):
     c = ep.bmAttributes
     attrs = []
-    tp = c &usb.ENDPOINT_TYPE_MASK
+    tp = c & usb.ENDPOINT_TYPE_MASK
     if tp == usb.ENDPOINT_TYPE_CONTROL:
         attrs.append('Control')
     elif tp == usb.ENDPOINT_TYPE_ISOCHRONOUS:
@@ -137,7 +134,7 @@ def ep_attributes(ep):
         attrs.append('Bulk')
     elif tp == usb.ENDPOINT_TYPE_INTERRUPT:
         attrs.append('Interrupt')
-        
+
     sync = (c & 12) >> 2
     if sync == 0:
         attrs.append('No sync')
@@ -152,7 +149,7 @@ def ep_attributes(ep):
         attrs.append('Data endpoint')
     elif usage == 1:
         attrs.append('Feedback endpoint')
-    elif usage ==2:
+    elif usage == 2:
         attrs.append('Subordinate Feedback endpoint')
     elif usage == 3:
         attrs.append('Reserved')
@@ -256,9 +253,9 @@ def find_interfaces(device, **kwargs):
 
 def find_endpoint(interface, direction, type):
     ep = usb_find_desc(interface, custom_match=
-                                  lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == direction and
-                                            usb.util.endpoint_type(e.bmAttributes) == type
-         )
+    lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == direction and
+              usb.util.endpoint_type(e.bmAttributes) == type
+                       )
     return ep
 
 
@@ -307,7 +304,7 @@ class USBDriver(Driver):
         elif len(devices) > 1:
             desc = '\n'.join(str(DeviceInfo.from_device(dev)) for dev in devices)
             raise errors.InstrumentError('{} devices found:\n{}\n'
-                                  'Please narrow the search criteria'.format(len(devices), desc))
+                                         'Please narrow the search criteria'.format(len(devices), desc))
 
         self.usb_dev, other = devices[0], devices[1:]
         nfo = DeviceInfo.from_device(self.usb_dev)
@@ -316,12 +313,12 @@ class USBDriver(Driver):
         self.log_debug('- Serial Number: {}'.format(nfo.serial_number))
         try:
             if self.usb_dev.is_kernel_driver_active(0):
-                    self.usb_dev.detach_kernel_driver(0)
+                self.usb_dev.detach_kernel_driver(0)
         except (usb.core.USBError, NotImplementedError) as e:
             self.log_warning(repr(e))
 
         try:
-            self.usb_dev.set_configuration() #self.CONFIGURATION
+            self.usb_dev.set_configuration()  # self.CONFIGURATION
             self.usb_dev.set_interface_altsetting()
         except usb.core.USBError as e:
             self.log_error("Could not set configuration")
@@ -329,7 +326,6 @@ class USBDriver(Driver):
 
         self.usb_intf = self._find_interface(self.usb_dev, self.INTERFACE)
         self.log_debug('Interface: {}'.format(self.usb_intf.index))
-
 
         self.usb_recv_ep, self.usb_send_ep = self._find_endpoints(self.usb_intf, self.ENDPOINTS)
 
@@ -401,15 +397,17 @@ class USBDriver(Driver):
 def _patch_endpoint(ep, log_func=print):
     _read = ep.read
     _write = ep.write
+
     def new_read(*args, **kwargs):
         log_func('---')
         log_func('reading from {}'.format(ep.bEndpointAddress))
         log_func('args: {}'.format(args))
         log_func('kwargs: {}'.format(kwargs))
-        ret =_read(*args, **kwargs)
+        ret = _read(*args, **kwargs)
         log_func('returned', ret)
         log_func('---')
         return ret
+
     def new_write(*args, **kwargs):
         log_func('---')
         log_func('writing to {}'.format(ep.bEndpointAddress))
@@ -419,5 +417,6 @@ def _patch_endpoint(ep, log_func=print):
         log_func('returned', ret)
         log_func('---')
         return ret
+
     ep.read = new_read
     ep.write = new_write
