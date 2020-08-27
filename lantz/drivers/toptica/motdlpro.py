@@ -1,10 +1,10 @@
-from lantz.driver import Driver
-from lantz import Feat, Action
-import serial
-import numpy as np
+import enum
 import struct
 import time
-import enum
+
+import numpy as np
+import serial
+from lantz.core import Action, Driver, Feat
 
 
 class MotDLpro(Driver):

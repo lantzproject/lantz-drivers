@@ -1,7 +1,7 @@
-from lantz.driver import Driver
-from lantz import Feat
-
 import urllib.request
+
+from lantz.core import Driver, Feat
+
 
 class VariableAttenuator(Driver):
     """
@@ -44,7 +44,6 @@ class VariableAttenuator(Driver):
         """
         return float(self.query('ATT?'))
 
-
     @attenuation.setter
     def attenuation(self, dB):
         """
@@ -53,7 +52,6 @@ class VariableAttenuator(Driver):
         print('Attenuation: {}dB'.format(dB))
         return self.query('SetAtt:{0:.2f}'.format(dB))
 
-
     def query(self, message):
         """
         Params:
@@ -61,8 +59,8 @@ class VariableAttenuator(Driver):
         """
         return str(urllib.request.urlopen('http://{}/:{}'.format(self.address, message)).read(), 'utf-8')
 
-def test_driver():
 
+def test_driver():
     ip_addr = '192.168.1.104'
     port = 80
 
@@ -76,6 +74,7 @@ def test_driver():
     print('Attenuation: {}dB'.format(att.attenuation))
     att.attenuation = 10.0
     print('Attenuation: {}dB'.format(att.attenuation))
+
 
 if __name__ == "__main__":
     test_driver()

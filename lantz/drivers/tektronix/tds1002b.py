@@ -9,12 +9,10 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat
-from lantz import MessageBasedDriver
+from lantz.core import Feat, MessageBasedDriver
 
 
 class TDS1002b(MessageBasedDriver):
-
     MANUFACTURER_ID = '0x699'
     MODEL_CODE = '0x363'
 

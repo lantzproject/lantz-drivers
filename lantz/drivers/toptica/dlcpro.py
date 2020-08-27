@@ -9,9 +9,7 @@
     Date: 21/04/2017
 """
 
-import numpy as np
-from lantz import Action, Feat, DictFeat, ureg
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import Feat, MessageBasedDriver
 
 
 class DLC(MessageBasedDriver):

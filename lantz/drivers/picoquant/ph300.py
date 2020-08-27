@@ -1,19 +1,17 @@
 import ctypes
-import time
 from io import BytesIO
-import struct
-import numpy as np
 
-from lantz.foreign import LibraryDriver
-from lantz import Feat, DictFeat, Action
+import numpy as np
+from lantz.core import Action, DictFeat, Feat
+from lantz.core.foreign import LibraryDriver
 
 TTREADMAX = 131072
 FIFOFULL = 0x0003
 
 t2_wraparound = 210698240
 
-class PH300(LibraryDriver):
 
+class PH300(LibraryDriver):
     LIBRARY_NAME = 'phlib64.dll'
     LIBRARY_PREFIX = 'PH_'
 
@@ -28,7 +26,7 @@ class PH300(LibraryDriver):
             return
         else:
             s = ctypes.create_string_buffer(50)
-            self.lib.GetErrorString(s,err)
+            self.lib.GetErrorString(s, err)
             raise Exception(s.value.decode('ascii'))
 
     def initialize(self):
@@ -153,20 +151,20 @@ class PH300(LibraryDriver):
         raw = np.frombuffer(databuf.getbuffer(), dtype=dt)
 
         time = (raw & 0x0FFFFFFF).astype(np.int64)
-        channel = (raw & 0xF0000000) >>28
+        channel = (raw & 0xF0000000) >> 28
 
         special = (channel == 15)
-        overflow = special & (time&0x0000000F == 0)
+        overflow = special & (time & 0x0000000F == 0)
 
-        overflow_edge = np.concatenate([special.nonzero()[0],[len(time)]])
+        overflow_edge = np.concatenate([special.nonzero()[0], [len(time)]])
         prev_i = 0
-        #This is the most time consuming part ~400us.  May be possible to optimize further
+        # This is the most time consuming part ~400us.  May be possible to optimize further
         for n, i in enumerate(overflow_edge):
-            time[prev_i:i] += n*t2_wraparound
+            time[prev_i:i] += n * t2_wraparound
             prev_i = i
 
         not_special = np.logical_not(special)
-        time = time[not_special]*self.resolution
+        time = time[not_special] * self.resolution
         channel = channel[not_special]
 
         return time[channel == 0], time[channel == 1]

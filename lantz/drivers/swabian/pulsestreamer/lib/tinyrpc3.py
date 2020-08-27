@@ -1,6 +1,7 @@
-import requests
 import json
-from tinyrpc.protocols.jsonrpc import JSONRPCErrorResponse, JSONRPCSuccessResponse, RPCError, JSONRPCProtocol
+
+import requests
+from tinyrpc.protocols.jsonrpc import JSONRPCErrorResponse, JSONRPCProtocol, JSONRPCSuccessResponse, RPCError
 
 
 class Struct:

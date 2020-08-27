@@ -1,10 +1,13 @@
-from lantz import Driver, Action, Q_
-from lantz.drivers.ni.daqmx import Device, AnalogInputTask, CounterInputTask, CountEdgesChannel, VoltageInputChannel
+from lantz.core import Action, Driver, Q_
+
+from lantz.drivers.ni.daqmx import AnalogInputTask, CountEdgesChannel, CounterInputTask, Device, VoltageInputChannel
+
 
 class Read_DAQ(Driver):
     """
     This is a simplified version of a daq drivers which can be used when where only standard read on the daq is necessary
     """
+
     def __init__(self, device_name):
         self._daq = Device(device_name)
         self._tasks = dict()
@@ -27,8 +30,11 @@ class Read_DAQ(Driver):
             task_type = 'analog'
             valid_channels = self._daq.analog_input_channels
         else:
-            raise Exception('Cannot identify the type of channel for {}. Channel must be either in {}, or in {}'.format(ch0, self._daq.counter_input_channels, self._daq.analog_input_channels))
-        
+            raise Exception(
+                'Cannot identify the type of channel for {}. Channel must be either in {}, or in {}'.format(ch0,
+                                                                                                            self._daq.counter_input_channels,
+                                                                                                            self._daq.analog_input_channels))
+
         for ch in channels:
             if ch in valid_channels:
                 ch_obj = CountEdgesChannel(ch) if task_type == 'counter' else VoltageInputChannel(ch)
@@ -48,6 +54,7 @@ class Read_DAQ(Driver):
     def clear_all_task(self):
         for task_name in self._tasks:
             self.clear_task(task_name)
+
     @Action()
     def start(self, task_name):
         self._tasks[task_name].start()
@@ -71,7 +78,7 @@ class Read_DAQ(Driver):
     @Action()
     def get_task_type(self, task_name):
         return self._tasks[task_name].IO_TYPE
-    
+
     # def simple_read
     #     if self.task.IO_TYPE == 'AI':
     #         self.task.read(samples_per_channel=samples)
@@ -79,7 +86,3 @@ class Read_DAQ(Driver):
 
     #     else:
     #         raise Exception('Unkown IO_TYPE of {}'.format(self.task.IO_TYPE))
-
-    
-
-    

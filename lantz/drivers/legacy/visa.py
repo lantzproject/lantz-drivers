@@ -9,15 +9,16 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Driver
-from lantz.drivers.legacy.textual import TextualMixin
-from lantz.errors import LantzTimeoutError
-
 import visa
+from lantz.core import Driver
+from lantz.core.errors import LantzTimeoutError
+
+from lantz.drivers.legacy.textual import TextualMixin
 
 
 class LantzVisaTimeoutError(LantzTimeoutError):
     pass
+
 
 """
 BYTESIZE = {5: 5, 6: 6,
@@ -30,6 +31,7 @@ PARITY = {'none': Constants.ASRL_PAR_NONE, 'even': Constants.ASRL_PAR_EVEN,
 STOPBITS = {1: Constants.ASRL_STOP_ONE, 1.5: Constants.ASRL_STOP_ONE5,
             2: Constants.ASRL_STOP_TWO}
 """
+
 
 class VisaDriver(object):
 
@@ -143,7 +145,7 @@ class SerialVisaDriver(MessageVisaDriver):
         super().__init__(resource_name, *args, **kwargs)
 
         kw = {}
-        kw['ASRL_BAUD']= kwargs.get('baudrate', self.BAUDRATE)
+        kw['ASRL_BAUD'] = kwargs.get('baudrate', self.BAUDRATE)
         kw['ASRL_DATA_BITS'] = BYTESIZE[kw.get('bytesize', self.BYTESIZE)]
         kw['ASRL_PARITY'] = PARITY[kw.get('parity', self.PARITY)]
         kw['ASRL_STOP_BITS'] = STOPBITS[kw.get('stopbits', self.STOPBITS)]
@@ -165,7 +167,6 @@ class SerialVisaDriver(MessageVisaDriver):
             kw['ASRL_END_IN'] = Constants.ASRL_END_NONE
 
         self._init_attributes.update(kw)
-
 
     def raw_recv(self, size):
         """Receive raw bytes to the instrument.
@@ -194,7 +195,6 @@ class SerialVisaDriver(MessageVisaDriver):
 
 class GPIBVisaDriver(MessageVisaDriver):
 
-
     def raw_recv(self, size):
         """Receive raw bytes to the instrument.
 
@@ -214,12 +214,12 @@ class GPIBVisaDriver(MessageVisaDriver):
 
         return data
 
+
 class TCPVisaDriver(MessageVisaDriver):
     pass
 
 
 class USBVisaDriver(MessageVisaDriver):
-
 
     def raw_recv(self, size):
         """Receive raw bytes to the instrument.

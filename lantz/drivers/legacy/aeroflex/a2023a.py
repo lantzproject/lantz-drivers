@@ -14,7 +14,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, Action
+from lantz.core import Action, Feat
+
 from lantz.drivers.legacy.serial import SerialDriver
 
 
@@ -114,7 +115,6 @@ class A2023a(SerialDriver):
     def frequency(self, value):
         self.send('CFRQ:VALUE {0:f}HZ'.format(value))
 
-
     @Feat(units='V')
     def amplitude(self):
         """RF amplitude.
@@ -125,7 +125,6 @@ class A2023a(SerialDriver):
     @amplitude.setter
     def amplitude(self, value):
         self.query('RFLV:VALUE {0:f}V'.format(value))
-
 
     @Feat(units='V')
     def offset(self):
@@ -201,7 +200,7 @@ class A2023a(SerialDriver):
 
     @Feat(values={True: 'on', False: 'off'})
     def time(self):
-        #TODO: Command??
+        # TODO: Command??
         self.send('')
         return self.recv()
 
@@ -237,6 +236,7 @@ if __name__ == '__main__':
     with A2023a(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             print(inst.idn)
@@ -246,10 +246,9 @@ if __name__ == '__main__':
             inst.freq = 41.006
             print(inst.rflevel)
             inst.rflevel = -13
-            inst.phase=0
+            inst.phase = 0
             print(inst.phase)
-            inst.phase=30
+            inst.phase = 30
             print(inst.phase)
-            inst.phase=60
+            inst.phase = 60
             print(inst.phase)
-

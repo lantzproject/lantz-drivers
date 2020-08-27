@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-from lantz import Feat, Action, Driver, Q_
-from lantz.drivers.ni.daqmx import AnalogOutputTask, VoltageOutputChannel
-
-import numpy as np
-import pandas as pd
 import os
 import time
 
+import numpy as np
+import pandas as pd
+from lantz.core import Action, Driver, Feat, Q_
+
+from lantz.drivers.ni.daqmx import AnalogOutputTask, VoltageOutputChannel
+
 default_folder = os.path.dirname(__file__)
 default_filename = os.path.join(default_folder, 'power_calibration.csv')
+
 
 class V1000F(Driver):
     def __init__(self, ch, calibration_file=default_filename, min_max=(0., 5.)):
@@ -26,7 +28,7 @@ class V1000F(Driver):
     @voltage.setter
     def voltage(self, val):
         task_config = {
-            'data': np.ones(5)*val,
+            'data': np.ones(5) * val,
             'auto_start': True,
         }
         self.task.write(**task_config)
@@ -59,7 +61,7 @@ class V1000F(Driver):
     def initialize(self):
         self.task = AnalogOutputTask('Analog_Out_{}'.format(self.ch.split('/')[-1]))
         VoltageOutputChannel(self.ch, min_max=self.min_max, units='volts', task=self.task)
-    
+
     def finalize(self):
         self.task.clear()
 

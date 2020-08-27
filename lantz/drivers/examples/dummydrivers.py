@@ -10,8 +10,7 @@
 """
 
 import numpy as np
-
-from lantz import Driver, Feat, ureg, Action
+from lantz.core import Action, Driver, Feat, ureg
 
 
 class DummyFunGen(Driver):
@@ -52,7 +51,7 @@ class DummyOsci(Driver):
 
     @Action()
     def measure(self):
-        return np.random.random((100, ))
+        return np.random.random((100,))
 
 
 class DummyShutter(Driver):

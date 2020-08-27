@@ -1,11 +1,10 @@
-from lantz.foreign import LibraryDriver
-from lantz import Feat, DictFeat, Action, Q_
+from ctypes import c_double
 
-import time
-from ctypes import c_uint, c_void_p, c_double, pointer, POINTER
+import numpy as np
+from lantz.core import Feat
+from lantz.core.foreign import LibraryDriver
 
 from lantz.drivers import Wavemeter
-import numpy as np
 
 
 class WS6_200(LibraryDriver, Wavemeter):

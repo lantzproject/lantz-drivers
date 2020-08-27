@@ -15,15 +15,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from comtypes.client import CreateObject, Constants
-import numpy as np
 import time
+
+import numpy as np
+from comtypes.client import Constants, CreateObject
 
 _exp = None
 _app = None
 _const = None
 _spec_mgr = None
 _spec = None
+
 
 def _initialize():
     '''
@@ -39,79 +41,101 @@ def _initialize():
     _spec = _spec_mgr.Current
     _spec.Process(_const.SPTP_INST_LOADCONFIGURATION)
 
+
 def _get_wavelen(coord, coeffs):
     val = 0
     for power, coef in enumerate(coeffs):
         val += coef * (coord + 1) ** power
     return val
 
+
 def get_exposure_time():
     return _exp.SGetParam(_const.EXP_EXPOSURE)[1]
+
 
 def set_exposure_time(val):
     return _exp.SetParam(_const.EXP_EXPOSURE, val)
 
+
 def get_use_new_window():
     return _exp.SGetParam(_const.EXP_NEWWINDOW)[1]
+
 
 def set_use_new_window(val):
     return _exp.SetParam(_const.EXP_NEWWINDOW, val)
 
+
 def get_file_inc_enable():
     return _exp.SGetParam(_const.EXP_FILEINCENABLE)[1]
+
 
 def set_file_inc_enable(val):
     return _exp.SetParam(_const.EXP_FILEINCENABLE, val)
 
+
 def get_autosave():
     return _exp.SGetParam(_const.EXP_AUTOSAVE)[1]
+
 
 def set_autosave(val):
     return _exp.SetParam(_const.EXP_AUTOSAVE, val)
 
+
 def get_grating():
     return _spec.GetParam(_const.SPT_CUR_GRATING)[1]
+
 
 def get_grating_grooves(gr):
     '''gr is the absolute grating number.'''
     return _spec.GetParam(_const.SPT_GRAT_GROOVES, gr)[1]
 
+
 def get_grating_name(gr):
     '''gr is the absolute grating number.'''
     return _spec.GetParam(_const.SPT_GRAT_USERNAME, gr)[1]
+
 
 def get_ngratings():
     '''Get number of gratings per turret.'''
     return _spec.GetParam(_const.SPT_GRATINGSPERTURRET)[1]
 
+
 def get_current_turret():
     return _spec.GetParam(_const.SPT_ACTIVE_TURRET_NUM)[1]
+
 
 def set_grating(val):
     _spec.SetParam(_const.SPT_NEW_GRATING, val)
     _spec.Move()
     return get_grating()
 
+
 def get_temperature():
     return _exp.SGetParam(_const.EXP_ACTUAL_TEMP)[1]
+
 
 def get_target_temperature():
     return _exp.SGetParam(_const.EXP_TEMPERATURE)[1]
 
+
 def set_target_temperature(val):
     return _exp.SetParam(_const.EXP_TEMPERATURE, val)
 
+
 def get_wavelength():
     return _spec.GetParam(_const.SPT_CUR_POSITION)[1]
+
 
 def set_wavelength(val):
     _spec.SetParam(_const.SPT_NEW_POSITION, float(val))
     _spec.Move()
     return get_wavelength()
 
+
 # Default maximum number of sleeps for 250sec
 MAX_SLEEPS = 5000
 doc = None
+
 
 def get_wavelengths():
     global doc
@@ -128,7 +152,8 @@ def get_wavelengths():
         time.sleep(0.05)
 
     if i == MAX_SLEEPS:
-        print 'Warning: maximum delay exceeded'
+        print
+        'Warning: maximum delay exceeded'
         return None
     xdim = doc.SGetParam(_const.DM_XDIM)[1]
     ydim = doc.SGetParam(_const.DM_YDIM)[1]
@@ -141,7 +166,7 @@ def get_wavelengths():
     return wlens
 
 
-#def get_spectrum(wlen=True, wlenpoly=True, newdoc=False):
+# def get_spectrum(wlen=True, wlenpoly=True, newdoc=False):
 def get_spectrum(wlen=False, wlenpoly=True, newdoc=False):
     '''
     Get a spectrum using winspec.
@@ -167,7 +192,8 @@ def get_spectrum(wlen=False, wlenpoly=True, newdoc=False):
         time.sleep(0.05)
 
     if i == MAX_SLEEPS:
-        print 'Warning: maximum delay exceeded'
+        print
+        'Warning: maximum delay exceeded'
         return None
 
     xdim = doc.SGetParam(_const.DM_XDIM)[1]
@@ -175,9 +201,9 @@ def get_spectrum(wlen=False, wlenpoly=True, newdoc=False):
     if ydim != 1:
         raise ValueError('Can only get 1D spectra')
 
-    spectrum = np.array(doc.GetFrame(1),dtype=np.uint16).flatten()
-    #spectrum = np.array(doc.GetFrame(1),dtype=np.uint16)
-    #spectrum.flatten()
+    spectrum = np.array(doc.GetFrame(1), dtype=np.uint16).flatten()
+    # spectrum = np.array(doc.GetFrame(1),dtype=np.uint16)
+    # spectrum.flatten()
     if wlen:
         calib = doc.GetCalibration()
         if wlenpoly:
@@ -190,5 +216,5 @@ def get_spectrum(wlen=False, wlenpoly=True, newdoc=False):
 
     return spectrum
 
-_initialize()
 
+_initialize()

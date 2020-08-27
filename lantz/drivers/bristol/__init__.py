@@ -1,7 +1,9 @@
 from lantz.drivers import Wavemeter
 
+
 class Bristol6XX(Wavemeter):
     pass
+
 
 from .bristol621 import Bristol621
 from .bristol671 import Bristol671

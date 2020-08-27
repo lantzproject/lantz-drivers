@@ -23,12 +23,14 @@
     - Dynamically set available values for feats
 """
 
-from lantz.driver import Driver
-from lantz import Feat, DictFeat, Action
-from pymba import Vimba
-import numpy as np
 import threading
 import time
+
+import numpy as np
+from lantz.core import Driver
+from pymba import Vimba
+
+from lantz import Action, Feat
 
 beginner_controls = ['ExposureTimeAbs', 'GainRaw', 'Width', 'Height',
                      'OffsetX', 'OffsetY']

@@ -8,8 +8,7 @@
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-
-from .base import Channel, Task
+from .base import Channel
 from .constants import Constants
 
 
@@ -64,11 +63,11 @@ class VoltageInputChannel(Channel):
 
     CREATE_FUN = 'CreateAIVoltageChan'
 
-    terminal_map = dict (default = Constants.Val_Cfg_Default,
-                         rse = Constants.Val_RSE,
-                         nrse = Constants.Val_NRSE,
-                         diff = Constants.Val_Diff,
-                         pseudodiff = Constants.Val_PseudoDiff)
+    terminal_map = dict(default=Constants.Val_Cfg_Default,
+                        rse=Constants.Val_RSE,
+                        nrse=Constants.Val_NRSE,
+                        diff=Constants.Val_Diff,
+                        pseudodiff=Constants.Val_PseudoDiff)
 
     def __init__(self, phys_channel, name='', terminal='default',
                  min_max=(-10., 10.), units='volts', task=None):
@@ -76,14 +75,14 @@ class VoltageInputChannel(Channel):
         terminal_val = self.terminal_map[terminal]
 
         if not name:
-            name = ''#phys_channel
+            name = ''  # phys_channel
 
         if units != 'volts':
             custom_scale_name = units
             units = Constants.Val_FromCustomScale
         else:
             custom_scale_name = None
-            units =  Constants.Val_Volts
+            units = Constants.Val_Volts
 
         self._create_args = (phys_channel, name, terminal_val,
                              min_max[0], min_max[1], units, custom_scale_name)
@@ -119,7 +118,6 @@ class VoltageOutputChannel(Channel):
                              custom_scale_name)
 
         super().__init__(task=task, name=name)
-
 
 
 # Not implemented:
@@ -180,8 +178,6 @@ class DigitalInputChannel(Channel):
 
     CREATE_FUN = 'CreateDIChan'
 
-
-
     def __init__(self, lines, name='', group_by='line'):
 
         if group_by == 'line':
@@ -193,9 +189,9 @@ class DigitalInputChannel(Channel):
 
         self._create_args = (lines, name, grouping_val)
 
-        super().__init__()#task=task, name=name)
+        super().__init__()  # task=task, name=name)
 
-        #self.lib.CreateDIChan(lines, name, grouping_val)
+        # self.lib.CreateDIChan(lines, name, grouping_val)
 
 
 class DigitalOutputChannel(Channel):
@@ -227,7 +223,7 @@ class DigitalOutputChannel(Channel):
 
         self._create_args = (lines, name, grouping_val)
 
-        super().__init__()#task=task, name=name)
+        super().__init__()  # task=task, name=name)
 
 
 class CountEdgesChannel(Channel):
@@ -291,7 +287,7 @@ class CountEdgesChannel(Channel):
 
     CREATE_FUN = 'CreateCICountEdgesChan'
 
-    def __init__ (self, phys_counter, name="", edge='rising', init=0, direction='up', task=None):
+    def __init__(self, phys_counter, name="", edge='rising', init=0, direction='up', task=None):
 
         if edge == 'rising':
             edge_val = Constants.Val_Rising
@@ -416,9 +412,9 @@ class LinearEncoderChannel(Channel):
         units_map = dict(Meters=Constants.Val_Meters, Inches=Constants.Val_Inches,
                          Ticks=Constants.Val_Ticks, FromCustomScale=Constants.Val_FromCustomScale)
 
-        decodingType_val = self._get_map_value ('decodingType', decodingType_map, decodingType)
-        ZidxPhase_val = self._get_map_value ('ZidxPhase', ZidxPhase_map, ZidxPhase)
-        units_val = self._get_map_value ('units', units_map, units)
+        decodingType_val = self._get_map_value('decodingType', decodingType_map, decodingType)
+        ZidxPhase_val = self._get_map_value('ZidxPhase', ZidxPhase_map, ZidxPhase)
+        units_val = self._get_map_value('units', units_map, units)
 
         if units_val != Constants.Val_FromCustomScale:
             customScaleName = None
@@ -436,7 +432,7 @@ class LinearEncoderChannel(Channel):
             float64(distPerPulse),
             float64(init),
             customScaleName
-        )==0
+        ) == 0
 
 
 class MeasureFrequencyChannel(Channel):
@@ -528,17 +524,14 @@ class MeasureFrequencyChannel(Channel):
 
     CREATE_FUN = 'CreateCIFreqChan'
 
-
     def __init__(self, counter, name='', min_val=1e2, max_val=1e3,
-                            units="hertz", edge="rising", method="low_freq",
-                            meas_time=1.0, divisor=1, custom_scale_name=None,
-                            task=None):
-
+                 units="hertz", edge="rising", method="low_freq",
+                 meas_time=1.0, divisor=1, custom_scale_name=None,
+                 task=None):
 
         self.data_type = float
 
-        name='test'
-
+        name = 'test'
 
         assert divisor > 0
 
@@ -549,14 +542,13 @@ class MeasureFrequencyChannel(Channel):
         elif method == 'large_range':
             meas_meth_val = Constants.Val_LargeRng2Ctr
 
-
         if units != ('hertz', 'ticks'):
             custom_scale_name = units
             units_val = Constants.Val_FromCustomScale
         else:
             custom_scale_name = None
             if units == 'hertz':
-                units_val =  Constants.Val_Hz
+                units_val = Constants.Val_Hz
             else:
                 units_val = Constants.Val_Ticks
 
@@ -581,9 +573,8 @@ class CounterOutTicksChannel(Channel):
 
     CREATE_FUN = 'DAQmxCreateCOPulseChanTicks'
 
-
-
-    def __init__(self, counter, name='', source_terminal='', idle_state='high', init_delay=1, low_ticks=10, high_ticks=10,
+    def __init__(self, counter, name='', source_terminal='', idle_state='high', init_delay=1, low_ticks=10,
+                 high_ticks=10,
                  task=None):
         """
         Create channel(s) to generate digital pulses defined by the number of timebase ticks that the pulse is at a
@@ -631,14 +622,12 @@ class CounterOutTicksChannel(Channel):
         else:
             idle_state_val == 'low'
 
-
-
         self._create_args = (counter, name, source_terminal, idle_state_val, init_delay, low_ticks, high_ticks)
-
 
         super().__init__(name=name, task=task)
 
-    def __init__(self, counter, name='', source_terminal='', idle_state='high', init_delay=1, low_ticks=10, high_ticks=10,
+    def __init__(self, counter, name='', source_terminal='', idle_state='high', init_delay=1, low_ticks=10,
+                 high_ticks=10,
                  task=None):
         """
         Create channel(s) to generate digital pulses defined by the number of timebase ticks that the pulse is at a
@@ -686,12 +675,10 @@ class CounterOutTicksChannel(Channel):
         else:
             idle_state_val == 'low'
 
-
-
         self._create_args = (counter, name, source_terminal, idle_state_val, init_delay, low_ticks, high_ticks)
 
-
         super().__init__(name=name, task=task)
+
 
 def create_channel_frequency(self, counter, name="", units='hertz', idle_state='low',
                              delay=0.0, freq=1.0, duty_cycle=0.5):
@@ -757,15 +744,16 @@ def create_channel_frequency(self, counter, name="", units='hertz', idle_state='
     """
     counter = str(counter)
     name = str(name)
-    units_map = dict (hertz = Constants.Val_Hz)
-    idle_state_map = dict (low=Constants.Val_Low, high=Constants.Val_High)
+    units_map = dict(hertz=Constants.Val_Hz)
+    idle_state_map = dict(low=Constants.Val_Low, high=Constants.Val_High)
     units_val = self._get_map_value('units', units_map, units)
     idle_state_val = self._get_map_value('idle_state', idle_state_map, idle_state)
     self.lib.CreateCOPulseChanFreq(counter, name, units_val, idle_state_val,
                                    delay, freq, (duty_cycle))
 
+
 def create_channel_ticks(self, counter, name="", source="", idle_state='low',
-                         delay = 0, low_ticks=1, high_ticks=1):
+                         delay=0, low_ticks=1, high_ticks=1):
     """
     Creates channel(s) to generate digital pulses defined by the
     number of timebase ticks that the pulse is at a high state and
@@ -827,13 +815,14 @@ def create_channel_ticks(self, counter, name="", source="", idle_state='low',
     """
     counter = str(counter)
     name = str(name)
-    idle_state_map = dict (low=Constants.Val_Low, high=Constants.Val_High)
+    idle_state_map = dict(low=Constants.Val_Low, high=Constants.Val_High)
     idle_state_val = self._get_map_value('idle_state', idle_state_map, idle_state)
     return CALL('CreateCOPulseChanTicks', self, counter, name, source, idle_state_val,
-                int32 (delay), int32 (low_ticks), int32 (high_ticks))==0
+                int32(delay), int32(low_ticks), int32(high_ticks)) == 0
+
 
 def create_channel_time(self, counter, name="", units="seconds", idle_state='low',
-                        delay = 0, low_time=1, high_time=1):
+                        delay=0, low_time=1, high_time=1):
     """
     Creates channel(s) to generate digital pulses defined by the
     number of timebase ticks that the pulse is at a high state and
@@ -894,13 +883,12 @@ def create_channel_time(self, counter, name="", units="seconds", idle_state='low
     """
     counter = str(counter)
     name = str(name)
-    units_map = dict (seconds = Constants.Val_Seconds)
-    idle_state_map = dict (low=Constants.Val_Low, high=Constants.Val_High)
+    units_map = dict(seconds=Constants.Val_Seconds)
+    idle_state_map = dict(low=Constants.Val_Low, high=Constants.Val_High)
     units_val = self._get_map_value('units', units_map, units)
     idle_state_val = self._get_map_value('idle_state', idle_state_map, idle_state)
     return CALL('CreateCOPulseChanTime', self, counter, name, units_val, idle_state_val,
-                float64 (delay), float64(low_time), float64(high_time))==0
-
+                float64(delay), float64(low_time), float64(high_time)) == 0
 
 
 class CounterOutPulseChannel(Channel):

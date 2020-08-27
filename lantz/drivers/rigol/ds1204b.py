@@ -10,40 +10,36 @@
 
     Source: programming guide: http://int.rigol.com/File/TechDoc/20150909/DS1000B%20Programming%20Guide.pdf
 """
-import numpy as np
-
-#from lantz import Feat, DictFeat, Action
-#from lantz.messagebased import MessageBasedDriver
-from lantz.core import Action, Feat, DictFeat, MessageBasedDriver
-
 from collections import OrderedDict
+
+import numpy as np
+from lantz.core import Action, Feat, MessageBasedDriver
 
 
 class DS1204B(MessageBasedDriver):
-
     WAVEFORM_FORMATS = OrderedDict([
-                   ('word', 'WORD'),
-                   ('byte', 'BYTE'),
-                   ('ascii', 'ASCII')
-                   ])
+        ('word', 'WORD'),
+        ('byte', 'BYTE'),
+        ('ascii', 'ASCII')
+    ])
 
     AVERAGES = OrderedDict([
-                 (2, 2),
-                 (4, 4),
-                 (8, 8),
-                 (16, 16),
-                 (32, 32),
-                 (64, 64),
-                 (128, 128),
-                 (256, 256),
+        (2, 2),
+        (4, 4),
+        (8, 8),
+        (16, 16),
+        (32, 32),
+        (64, 64),
+        (128, 128),
+        (256, 256),
     ])
 
     CHANNELS = OrderedDict([
-                ('1', '1'),
-                ('2', '2'),
-                ('3', '3'),
-                ('4', '4'),
-                ('MATH', 'MATH'),
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('MATH', 'MATH'),
     ])
 
     DEFAULTS = {
@@ -68,7 +64,6 @@ class DS1204B(MessageBasedDriver):
         msg = ':WAV:DATA?'
 
         if channel:
-
             msg += ' CHAN{}'.format(channel)
 
         data = self.resource.query_binary_values(msg, datatype='B')
@@ -99,7 +94,6 @@ class DS1204B(MessageBasedDriver):
 
         return t_i, y_i
 
-
     @Feat(values=WAVEFORM_FORMATS)
     def waveform_format(self):
         """
@@ -127,7 +121,6 @@ class DS1204B(MessageBasedDriver):
         format, type, points, count, xinc, xor, xref, yinc, yor, yref = result_string.split(',')
         return format, type, points, count, xinc, xor, xref, yinc, yor, yref
 
-
     @Feat(values=AVERAGES)
     def averages(self):
         """
@@ -141,9 +134,6 @@ class DS1204B(MessageBasedDriver):
         Sets the number of averages used.
         """
         return self.write(':ACQ:AVER {}'.format(n_avg))
-
-
-
 
 
 if __name__ == '__main__':

@@ -9,11 +9,9 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import ctypes as ct
+from lantz.core import Action, DictFeat, Feat, errors
+from lantz.core.foreign import LibraryDriver
 
-from lantz import Feat, Action, DictFeat
-from lantz.foreign import LibraryDriver
-from lantz import errors
 
 class ForeignTemplate(LibraryDriver):
     """Template for Drivers using a library.
@@ -40,7 +38,7 @@ class ForeignTemplate(LibraryDriver):
     def amplitude(self, value):
         self.query('!AMP {:.1f}'.format(value))
 
-    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1, 9)))
     def dout(self, key):
         """Digital output state.
         """
@@ -57,7 +55,6 @@ class ForeignTemplate(LibraryDriver):
         return self.lib.something()
 
 
-
 if __name__ == '__main__':
     import argparse
     import lantz.log
@@ -71,8 +68,8 @@ if __name__ == '__main__':
     with ForeignTemplate() as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here
             print('Non interactive mode')
-

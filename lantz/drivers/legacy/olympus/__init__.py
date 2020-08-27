@@ -13,6 +13,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .ixbx import IX2, BX2A, IXBX
+from .ixbx import BX2A, IX2, IXBX
 
 __all__ = ['IX2', 'BX2A', 'IXBX']

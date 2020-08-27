@@ -13,16 +13,12 @@
 
 """
 
-
-from lantz.feat import Feat
-from lantz.action import Action
-from lantz.messagebased import MessageBasedDriver
-from pyvisa import constants
-from lantz import Q_, ureg
-from lantz.processors import convert_to
-from lantz.drivers.motion import MotionAxisMultiple, MotionControllerMultiAxis, BacklashMixing
 import time
-import numpy as np
+
+from lantz.core import Action, Feat
+
+from lantz.drivers.motion import BacklashMixing, MotionAxisMultiple
+
 
 #  Add generic units:
 # ureg.define('unit = unit')
@@ -38,17 +34,17 @@ class MotionController():
 
 
 UNITS = {0: 'encoder count',
-        1: 'motor step',
-        2: 'millimeter',
-        3: 'micrometer',
-        4: 'inches',
-        5: 'milli-inches',
-        6: 'micro-inches',
-        7: 'degree',
-        8: 'gradian',
-        9: 'radian',
-        10: 'milliradian',
-        11: 'microradian', }
+         1: 'motor step',
+         2: 'millimeter',
+         3: 'micrometer',
+         4: 'inches',
+         5: 'milli-inches',
+         6: 'micro-inches',
+         7: 'degree',
+         8: 'gradian',
+         9: 'radian',
+         10: 'milliradian',
+         11: 'microradian', }
 
 
 class MotionAxis(MotionAxisMultiple, BacklashMixing):
@@ -114,7 +110,6 @@ class MotionAxis(MotionAxisMultiple, BacklashMixing):
 
         # First do move to extra position if necessary
         self._set_position(pos, wait=self.wait_until_done)
-
 
     def __set_position(self, pos):
         """

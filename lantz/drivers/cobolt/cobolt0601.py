@@ -7,10 +7,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
+from lantz.core import Action, Feat, MessageBasedDriver
 from pyvisa import constants
-
-from lantz import Action, Feat
-from lantz import MessageBasedDriver
 
 
 class Cobolt0601(MessageBasedDriver):
@@ -26,11 +24,11 @@ class Cobolt0601(MessageBasedDriver):
                          'encoding': 'ascii',
                          }}
 
-    #TODO: add this in PyVISA
+    # TODO: add this in PyVISA
     # flow control flags
-    #RTSCTS = False
-    #DSRDTR = False
-    #XONXOFF = False
+    # RTSCTS = False
+    # DSRDTR = False
+    # XONXOFF = False
 
     @Feat(read_once=True)
     def idn(self):
@@ -203,6 +201,7 @@ class Cobolt0601(MessageBasedDriver):
         """
         return self.query('gom?')[1:]
 
+
 if __name__ == '__main__':
     import argparse
     import lantz.log
@@ -218,6 +217,7 @@ if __name__ == '__main__':
     with Cobolt0601.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.qtwidgets import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here

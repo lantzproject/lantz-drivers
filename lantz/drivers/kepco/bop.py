@@ -8,8 +8,8 @@
     Date: 1/18/2016
 """
 
-from lantz import Action, Feat
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import Action, Feat, MessageBasedDriver
+
 
 class BOP(MessageBasedDriver):
 

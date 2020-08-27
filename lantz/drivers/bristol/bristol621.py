@@ -1,11 +1,12 @@
-from lantz.foreign import LibraryDriver
-from lantz import Feat, Action
-from ctypes import c_long, c_int, c_uint, c_double, c_float, byref, POINTER, pointer
+from ctypes import c_double, c_float, c_int, c_long, c_uint
+
+from lantz.core import Action, Feat
+from lantz.core.foreign import LibraryDriver
 
 from lantz.drivers.bristol import Bristol6XX
 
-class Bristol621(LibraryDriver, Bristol6XX):
 
+class Bristol621(LibraryDriver, Bristol6XX):
     LIBRARY_NAME = 'CLDevIFace.dll'
     LIBRARY_PREFIX = 'CL'
 
@@ -58,6 +59,7 @@ class Bristol621(LibraryDriver, Bristol6XX):
         self.lib.SetPowerUnits(self.handle, 0)
         value = self.lib.GetPowerReading(self.handle)
         return value
+
 
 if __name__ == '__main__':
     b = Bristol621(5)

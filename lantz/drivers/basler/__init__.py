@@ -10,7 +10,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-
 from .basler import BaslerCam
 
 __all__ = ['BaslerCam']

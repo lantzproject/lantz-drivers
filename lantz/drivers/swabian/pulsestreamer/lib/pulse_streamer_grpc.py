@@ -1,6 +1,7 @@
 # import grpc-package
-from grpc import insecure_channel
 import sys
+
+from grpc import insecure_channel
 
 # from time import *
 

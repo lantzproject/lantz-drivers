@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from lantz import Feat, Action
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import Action, Feat, MessageBasedDriver
+
 
 class Yokogawa7651(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\r\n',

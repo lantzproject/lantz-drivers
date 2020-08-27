@@ -1,4 +1,4 @@
-﻿﻿# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
     lantz.drivers.ni.daqmx.base
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,10 +9,8 @@
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-
-from lantz import Feat, Action
-from lantz import errors
-from lantz.foreign import LibraryDriver, RetValue, RetStr
+from lantz.core import Action, Feat, errors
+from lantz.core.foreign import LibraryDriver, RetStr, RetValue
 
 from .constants import Constants, Types
 
@@ -53,6 +51,7 @@ _TRIGGER_TYPES = {'digital_level': Constants.Val_DigLvl,
 _CHANNEL_TYPES = {'AI': Constants.Val_AI, 'AO': Constants.Val_AO,
                   'DI': Constants.Val_DI, 'DO': Constants.Val_DO,
                   'CI': Constants.Val_CI, 'CO': Constants.Val_CO}
+
 
 class _Base(LibraryDriver):
     """Base class for NIDAQmx
@@ -96,8 +95,10 @@ class _Base(LibraryDriver):
 
         super()._add_types()
         T = Types
-        self.lib.CreateAIVoltageChan.argtypes = [T.TaskHandle, T.string, T.string, T.int32, T.float64, T.float64, T.int32, T.string]
+        self.lib.CreateAIVoltageChan.argtypes = [T.TaskHandle, T.string, T.string, T.int32, T.float64, T.float64,
+                                                 T.int32, T.string]
         self.lib.ReadAnalogScalarF64.argtypes = [T.TaskHandle, T.float64, T._, T._]
+
 
 class _ObjectDict(object):
 
@@ -193,7 +194,7 @@ class Device(_Base):
         if name in ('GetErrorString', 'GetExtendedErrorInfo'):
             return super()._preprocess_args(name, *args)
         else:
-            return super()._preprocess_args(name, *((self.device_name, ) + args))
+            return super()._preprocess_args(name, *((self.device_name,) + args))
 
     @Feat(read_once=True)
     def is_simulated(self):
@@ -217,7 +218,7 @@ class Device(_Base):
         return value
 
     @Feat(read_once=True)
-    def serial_number (self):
+    def serial_number(self):
         """Return the serial number of the device. This value is zero
         if the device does not have a serial number.
         """
@@ -305,14 +306,14 @@ class Device(_Base):
         return value
 
     @Feat(read_once=True)
-    def pci_bus_number (self):
+    def pci_bus_number(self):
         """Return the PCI bus number of the device.
         """
         err, value = self.lib.GetDevPCIBusNum(RetValue('i32'))
         return value
 
     @Feat(read_once=True)
-    def pci_device_number (self):
+    def pci_device_number(self):
         """Return the PCI slot number of the device.
         """
         err, value = self.lib.GetDevPCIDevNum(RetValue('i32'))
@@ -410,7 +411,7 @@ class Task(_Base):
         if name in ('GetErrorString', 'GetExtendedErrorInfo', 'LoadTask', 'CreateTask'):
             return super()._preprocess_args(name, *args)
         else:
-            return super()._preprocess_args(name, *((self.task_handle, ) + args))
+            return super()._preprocess_args(name, *((self.task_handle,) + args))
 
     def _create_channel_from_name(self, name):
         return Channel(self, name=name)
@@ -623,7 +624,7 @@ class Task(_Base):
             options = Constants.Val_SynchronousEventCallbacks
 
         if func is None:
-            c_func = None # to unregister func
+            c_func = None  # to unregister func
         else:
             if self._register_every_n_samples_event_cache is not None:
                 # unregister:
@@ -694,7 +695,7 @@ class Task(_Base):
 
         register_signal_event, register_every_n_samples_event
         """
-        if options=='sync':
+        if options == 'sync':
             options = Constants.Val_SynchronousEventCallbacks
 
         if func is None:
@@ -768,7 +769,6 @@ class Task(_Base):
         self._register_signal_event_cache = c_func
         self.lib.RegisterSignalEvent(signal, uInt32(options), c_func, cb_data)
 
-
     @Action(values=(str, str, _SAMPLE_MODES, None))
     def configure_timing_change_detection(self, rising_edge_channel='', falling_edge_channel='',
                                           sample_mode='continuous', samples_per_channel=1000):
@@ -778,7 +778,6 @@ class Task(_Base):
 
         self.lib.CfgChangeDetectionTiming(rising_edge_channel, falling_edge_channel,
                                           sample_mode, samples_per_channel)
-
 
     @Action(values=(_SAMPLE_MODES, None))
     def configure_timing_handshaking(self, sample_mode='continuous', samples_per_channel=1000):
@@ -855,9 +854,8 @@ class Task(_Base):
         """
         if source == 'on_board_clock':
             source = None
-        #self.samples_per_channel = samples_per_channel
+        # self.samples_per_channel = samples_per_channel
         self.sample_mode = sample_mode
-
 
         self.lib.CfgSampClkTiming(source, rate, active_edge, sample_mode, samples_per_channel)
 
@@ -1008,7 +1006,7 @@ class Task(_Base):
         self.lib.DisableStartTrig()
 
     @Action(values=(str, _SLOPE_TYPES, None, None))
-    def configure_analog_edge_reference_trigger(self, source, slope='rising',level=1.0, pre_trigger_samps=0):
+    def configure_analog_edge_reference_trigger(self, source, slope='rising', level=1.0, pre_trigger_samps=0):
         """Configure the task to stop the acquisition when the device
         acquires all pretrigger samples, an analog signal reaches the
         level you specify, and the device acquires all post-trigger samples.
@@ -1058,9 +1056,9 @@ class Task(_Base):
 
         self.lib.SendSoftwareTrigger(triggerID)
 
-
     @Feat(values=(str, _WHEN_WINDOW, None, None, None))
-    def configure_analog_window_reference_trigger(self, source, when='entering',top=1.0, bottom=1.0, pre_trigger_samps=0):
+    def configure_analog_window_reference_trigger(self, source, when='entering', top=1.0, bottom=1.0,
+                                                  pre_trigger_samps=0):
         """Configure the task to stop the acquisition when the device
         acquires all pretrigger samples, an analog signal enters or
         leaves a range you specify, and the device acquires all
@@ -1135,10 +1133,9 @@ class Task(_Base):
           samples per channel is equal to number of samples per channel
           in the NI-DAQmx Timing functions minus pretriggerSamples.
         """
-        if not source.startswith('/'): # source needs to start with a '/' TODO WHY?
-            source = '/'  + source
+        if not source.startswith('/'):  # source needs to start with a '/' TODO WHY?
+            source = '/' + source
         self.lib.CfgDigEdgeRefTrig(source, slope, pre_trigger_samps)
-
 
     @Action(values=(str, str, _WHEN_MATCH, None))
     def configure_digital_pattern_reference_trigger(self, source, pattern, match=True, pre_trigger_samps=0):
@@ -1172,7 +1169,7 @@ class Task(_Base):
           in the NI-DAQmx Timing functions minus pretriggerSamples.
         """
 
-        if not source.startswith('/'): # source needs to start with a '/'
+        if not source.startswith('/'):  # source needs to start with a '/'
             source = '/' + source
 
         self.lib.CfgDigPatternRefTrig(self, source, pattern, match, pre_trigger_samps)
@@ -1203,8 +1200,7 @@ class Task(_Base):
         """
         return self.lib.DisableRefTrig(self) == 0
 
-
-    #TODO CHECK
+    # TODO CHECK
     def set_buffer(self, samples_per_channel):
         """
         Overrides the automatic I/O buffer allocation that NI-DAQmx performs.
@@ -1224,8 +1220,8 @@ class Task(_Base):
 
           success_status : bool
         """
-        #channel_io_type = self.channel_io_type
-        #return CALL('Cfg%sBuffer' % (channel_io_type.title()), self, uInt32(samples_per_channel)) == 0
+        # channel_io_type = self.channel_io_type
+        # return CALL('Cfg%sBuffer' % (channel_io_type.title()), self, uInt32(samples_per_channel)) == 0
         pass
 
     @Feat(units='Hz')
@@ -1330,7 +1326,7 @@ class Task(_Base):
         else:
             self.lib.SetWriteRegenMode(value)
 
-    #TODO CHECK
+    # TODO CHECK
     @Feat(values={'digital_edge': Constants.Val_DigEdge, 'disable': Constants.Val_None, None: None})
     def arm_start_trigger_type(self):
         """the type of trigger to use to arm the task for a
@@ -1351,7 +1347,6 @@ class Task(_Base):
         else:
             self.lib.SetArmStartTrigType(trigger_type)
 
-
     @Feat()
     def arm_start_trigger_source(self):
         """Rhe name of a terminal where there is a digital
@@ -1364,7 +1359,7 @@ class Task(_Base):
 
     @arm_start_trigger_source.setter
     def arm_start_trigger_source(self, source):
-        source = str (source)
+        source = str(source)
         if source is None:
             self.lib.ResetDigEdgeArmStartTrigSrc()
         else:
@@ -1584,7 +1579,7 @@ class Channel(_Base):
         return value
 
     @Feat(read_once=True)
-    def physical_channel_name(self,):
+    def physical_channel_name(self, ):
         """Name of the physical channel upon which this virtual channel is based.
         """
         err, value = self.lib.GetPhysicalChanName(*RetStr(default_buf_size))
@@ -1748,7 +1743,6 @@ class Channel(_Base):
         err, value = self.__get_fun('Get{}NumLines')(RetValue('u32'))
         return value
 
-
     def get_units(self, channel_name):
         """
         Specifies in what units to generate voltage on the
@@ -1764,16 +1758,15 @@ class Channel(_Base):
         channel_name = str(channel_name)
         mt = self.get_measurment_type(channel_name)
         channel_type = self.channel_type
-        if mt=='voltage':
+        if mt == 'voltage':
             d = int32(0)
             CALL('Get%sVoltageUnits' % (channel_type), self, channel_name, ctypes.byref(d))
-            units_map = {Contants.Val_Volts:'volts',
-                         #Constants.Val_FromCustomScale:'custom_scale',
-                         #Constants.Val_FromTEDS:'teds',
-            }
+            units_map = {Contants.Val_Volts: 'volts',
+                         # Constants.Val_FromCustomScale:'custom_scale',
+                         # Constants.Val_FromTEDS:'teds',
+                         }
             return units_map[d.value]
         raise NotImplementedError('{} {}'.format(channel_name, mt))
-
 
     @Feat(values={'none': Constants.Val_None, 'once': Constants.Val_Once,
                   'every_sample': Constants.Val_EverySample})
@@ -1855,19 +1848,19 @@ class Channel(_Base):
         else:
             err = self.lib.SetCICtrTimebaseRate(value)
 
-
     @Feat(None)
-    def terminal_pulse (self, terminal):
+    def terminal_pulse(self, terminal):
         """Terminal to generate pulses.
         """
         self.lib.SetCOPulseTerm(terminal)
-
 
     @Feat(None)
     def terminal_count_edges(self, channel, terminal):
         """Input terminal of the signal to measure.
         """
         self.lib.SetCICountEdgesTerm(terminal)
+
+
 """
 
 DoneEventCallback_map = dict(AI=ctypes.CFUNCTYPE (int32, AnalogInputTask, int32, void_p),
@@ -1895,7 +1888,6 @@ SignalEventCallback_map = dict(AI=ctypes.CFUNCTYPE (int32, AnalogInputTask, int3
 """
 
 if __name__ == '__main__':
-
     import lantz.log
 
     lantz.log.log_to_screen(lantz.log.DEBUG)

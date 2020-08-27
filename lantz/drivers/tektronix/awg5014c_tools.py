@@ -9,10 +9,11 @@
 """
 
 import struct
-import numpy as _np
-from datetime import datetime as _dt
-import time as _t
 import sys
+from datetime import datetime as _dt
+
+import numpy as _np
+
 
 def array_to_ieee_block(analog, marker1, marker2, prepend_length=True):
     """
@@ -24,20 +25,23 @@ def array_to_ieee_block(analog, marker1, marker2, prepend_length=True):
     """
     num_bytes = 5 * len(analog)
     num_digit = len(str(num_bytes))
-    if not marker1.dtype==_np.int8: marker1 = _np.asarray(marker1, dtype=_np.int8)
-    if not marker2.dtype==_np.int8: marker2 = _np.asarray(marker2, dtype=_np.int8)
+    if not marker1.dtype == _np.int8: marker1 = _np.asarray(marker1, dtype=_np.int8)
+    if not marker2.dtype == _np.int8: marker2 = _np.asarray(marker2, dtype=_np.int8)
     if not analog.dtype == _np.float32: analog = _np.asarray(analog, dtype=_np.float32)
 
     points = _np.zeros(len(analog), dtype='<f4, i1')
-    points['f1'] = (marker1 + ((marker2)<<1))<<6
+    points['f1'] = (marker1 + ((marker2) << 1)) << 6
     points['f0'] = analog
 
-    #Makes sure that the byteordering is 'little'
+    # Makes sure that the byteordering is 'little'
     if not sys.byteorder == 'little': points = points.newbyteorder('<')
     bin_all = points.tobytes()
 
-    if prepend_length:  return bytes('#{:d}{:d}'.format(num_digit, num_bytes), encoding='ascii') + bin_all
-    else             :  return bin_all
+    if prepend_length:
+        return bytes('#{:d}{:d}'.format(num_digit, num_bytes), encoding='ascii') + bin_all
+    else:
+        return bin_all
+
 
 def iee_block_to_array(block):
     """
@@ -47,17 +51,17 @@ def iee_block_to_array(block):
     """
     block = block.rstrip()
 
-    #Check for a '#'
+    # Check for a '#'
     if block[0:1] != b'#': raise ValueError("Argument is not a iee formatted block")
 
-    #Check for that there is the correct number of bytes
+    # Check for that there is the correct number of bytes
     num_digit = int(block[1:2])
-    num_bytes = int(block[2:2+num_digit])
+    num_bytes = int(block[2:2 + num_digit])
     block = block[2 + num_digit:]
     if len(block) != num_bytes: raise ValueError("Argument is not a iee formatted block")
 
-    n_points = int(num_bytes/5)
-    array = struct.unpack('<'+'fB'*n_points, block)
+    n_points = int(num_bytes / 5)
+    array = struct.unpack('<' + 'fB' * n_points, block)
     analog = _np.array(array[::2])
     marker = _np.array(array[1::2])
     print(marker)
@@ -65,50 +69,69 @@ def iee_block_to_array(block):
     marker2 = _np.right_shift(marker, 7)
     return analog, marker1, marker2
 
+
 class AWG_Record(object):
     def __init__(self, name, data, data_type=None):
         self.name = name
         self.data = data
         if data_type is None:
-            if type(data) == str:       self.data_type = 'char'
-            elif type(data) == float:   self.data_type = 'double'
-            elif type(data) == bytes :  self.data_type = 'bytes'
-            else:                       self.data_type = 'short'
+            if type(data) == str:
+                self.data_type = 'char'
+            elif type(data) == float:
+                self.data_type = 'double'
+            elif type(data) == bytes:
+                self.data_type = 'bytes'
+            else:
+                self.data_type = 'short'
         else:
             if not data_type in ['char', 'double', 'long', 'short', 'bytes']: raise Exception("Invalid data type!")
-            self.data_type= data_type
+            self.data_type = data_type
 
     def _get_format_str(self, data, type):
-        if type == 'char':      return '%ds'%(len(data)+1)
-        elif type == 'double':  return 'd'
-        elif type == 'long':    return 'l'
-        elif type == 'short':   return 'h'
-        elif type == 'bytes':   return '%ds'%(len(data))
-        else:   raise Exception("Invalid data type!")
+        if type == 'char':
+            return '%ds' % (len(data) + 1)
+        elif type == 'double':
+            return 'd'
+        elif type == 'long':
+            return 'l'
+        elif type == 'short':
+            return 'h'
+        elif type == 'bytes':
+            return '%ds' % (len(data))
+        else:
+            raise Exception("Invalid data type!")
 
     def _get_length(self, data, type):
-        if   type == 'char':   return len(data) + 1
-        elif type == 'bytes':  return len(data)
-        elif type == 'double': return 8
-        elif type == 'long':   return 4
-        elif type == 'short':  return 2
-        else :raise Exception("Invalid data type!")
+        if type == 'char':
+            return len(data) + 1
+        elif type == 'bytes':
+            return len(data)
+        elif type == 'double':
+            return 8
+        elif type == 'long':
+            return 4
+        elif type == 'short':
+            return 2
+        else:
+            raise Exception("Invalid data type!")
 
     def get_bytes(self):
-        fmt = '<ii'+self._get_format_str(self.name, 'char')+self._get_format_str(self.data, self.data_type)
+        fmt = '<ii' + self._get_format_str(self.name, 'char') + self._get_format_str(self.data, self.data_type)
         name_l = self._get_length(self.name, 'char')
         data_l = self._get_length(self.data, self.data_type)
-        if self.data_type == 'char':   data = bytes(self.data, encoding='ascii')
-        else                       :   data = self.data
+        if self.data_type == 'char':
+            data = bytes(self.data, encoding='ascii')
+        else:
+            data = self.data
         return struct.pack(fmt, name_l, data_l, bytes(self.name, encoding='ascii'), data)
 
 
 class AWG_File_Writer(object):
     def __init__(self):
-        self.records = ([],[],[],[],[],[],[],)
+        self.records = ([], [], [], [], [], [], [],)
         self.add_record("MAGIC", 5000, 1)
         self.add_record("VERSION", 1, 1)
-        self.wfm  = list()
+        self.wfm = list()
         self.n_seq_lines = 0
 
     def add_record(self, name, data, group, data_type=None):
@@ -117,8 +140,8 @@ class AWG_File_Writer(object):
         self.records[group].append(AWG_Record(name, data, data_type=data_type))
 
     def add_waveform(self, name, analog, marker1, marker2):
-        if len(self.wfm)>=32000: raise Exception("Maximum 32000 waveform in .AWG file...")
-        if len(analog)<250:
+        if len(self.wfm) >= 32000: raise Exception("Maximum 32000 waveform in .AWG file...")
+        if len(analog) < 250:
             print("WARNING: The AWG will use the software sequencer because this waveform has less than 250 points")
         data = array_to_ieee_block(analog, marker1, marker2, prepend_length=False)
         t = _dt.now()
@@ -131,14 +154,15 @@ class AWG_File_Writer(object):
         self.add_record("WAVEFORM_TIMESTAMP_{}".format(N), struct.pack('<' + 'h' * 8, *tm), 5, data_type='bytes')
         self.add_record("WAVEFORM_DATA_{}".format(N), data, 5)
 
-    def add_sequence_line(self, wfm=("", "", "", ""), use_sub_seq = False, sub_seq_name="",
+    def add_sequence_line(self, wfm=("", "", "", ""), use_sub_seq=False, sub_seq_name="",
                           repeat_count=0, wait_for_trigger=False, jump_target=0, goto_target=0):
         if self.n_seq_lines >= 8000: raise Exception("Maximum 8000 lines for main sequence in .AWG file...")
         N = self.n_seq_lines + 1
         if not (len(wfm) == 4): raise Exception("There should be 4 entries in the wfm tuples")
         if not 65536 >= repeat_count >= 0: raise Exception("Maximum of 65536 for repeat_count")
-        if not use_sub_seq and wfm[0] == wfm[1] == wfm[2] == wfm[3] == "": raise Exception("At least one channel must have non-empty wfm")
-        if use_sub_seq and sub_seq_name=="": raise Exception("sub_seq_name is empty")
+        if not use_sub_seq and wfm[0] == wfm[1] == wfm[2] == wfm[3] == "": raise Exception(
+            "At least one channel must have non-empty wfm")
+        if use_sub_seq and sub_seq_name == "": raise Exception("sub_seq_name is empty")
 
         self.add_record('SEQUENCE_WAIT_{}'.format(N), wait_for_trigger, 6)
         self.add_record('SEQUENCE_LOOP_{}'.format(N), repeat_count, 6, data_type='long')
@@ -164,7 +188,6 @@ class AWG_File_Writer(object):
         self.records[6].append(ss)
         return ss
 
-
     def get_bytes(self):
         ans = list()
         for i in range(len(self.records)):
@@ -176,11 +199,12 @@ class AWG_File_Writer(object):
                 subseq_number, cummul_line = 1, 0
                 for ss in group_list:
                     if len(ss.lines) != 0:
-                        ans += ss.get_bytes(subseq_number,cummul_line)
+                        ans += ss.get_bytes(subseq_number, cummul_line)
                         subseq_number += 1
                         cummul_line += len(ss.lines)
 
         return b''.join(ans)
+
 
 class Sub_Sequence(object):
     def __init__(self, name):
@@ -210,16 +234,17 @@ class Sub_Sequence(object):
         ]
         n = 1
         for line in self.lines:
-            rec.append(AWG_Record("SUBSEQ_LOOP_{}_{}_{}".format(n,o,u), line[0], data_type='long'))
+            rec.append(AWG_Record("SUBSEQ_LOOP_{}_{}_{}".format(n, o, u), line[0], data_type='long'))
             wfm = line[1]
             for i in range(len(wfm)):
-                    if wfm[i] != "":
-                        rec.append(AWG_Record("SUBSEQ_WAVEFORM_NAME_CH_{}_{}_{}_{}".format(i + 1, n, o, u), wfm[i]))
+                if wfm[i] != "":
+                    rec.append(AWG_Record("SUBSEQ_WAVEFORM_NAME_CH_{}_{}_{}_{}".format(i + 1, n, o, u), wfm[i]))
             n += 1
             u += 1
         for entry in rec:
             ans += entry.get_bytes()
         return ans
+
 
 # -----------------------------------
 # DEPRECATED
@@ -241,15 +266,17 @@ def create_wfm(analog, marker1, marker2, clock=None):
 
     header = b'MAGIC 1000\r\n'
     trailer = bytes('CLOCK {:1.10E}\r\n'.format(clock), encoding='ascii') if clock is not None else b''
-    body =  array_to_iee_block(analog, marker1, marker2)
+    body = array_to_iee_block(analog, marker1, marker2)
 
     return b''.join((header, body, trailer))
+
 
 class Sequence(object):
     def __init__(self):
         self.seq = []
 
-    def add_line(self, ch1_wfm="", ch2_wfm="", ch3_wfm="", ch4_wfm="", repeat_count=0, wait_for_trigger=False, logic_jump_target=0, finished_goto=0):
+    def add_line(self, ch1_wfm="", ch2_wfm="", ch3_wfm="", ch4_wfm="", repeat_count=0, wait_for_trigger=False,
+                 logic_jump_target=0, finished_goto=0):
         """
         This defines a new sequence line to be added to this SEQ file
         :param ch1_wfm: wfm (or pat) file to be used for CH1 on this line.
@@ -264,8 +291,9 @@ class Sequence(object):
         :return:
         """
         wait_for_trigger = 1 if bool(wait_for_trigger) else 0
-        line = '"{}","{}","{}","{}",{},{},{},{},{}\r\n'.format(ch1_wfm, ch2_wfm, ch3_wfm, ch4_wfm,int(repeat_count),
-                                                           wait_for_trigger, 0, int(logic_jump_target), finished_goto)
+        line = '"{}","{}","{}","{}",{},{},{},{},{}\r\n'.format(ch1_wfm, ch2_wfm, ch3_wfm, ch4_wfm, int(repeat_count),
+                                                               wait_for_trigger, 0, int(logic_jump_target),
+                                                               finished_goto)
         self.seq.append(line)
 
     def verify_line(self, line):
@@ -274,20 +302,24 @@ class Sequence(object):
         print(line)
         print(args)
         if len(args) != 9: raise Exception("The number of paramter in the line <{}> is incorrect".format(line))
-        if args[0]==args[1]==args[2]==args[3]=="": raise Exception("At least one channel must have non-empty wfm")
-        if not 0<=int(args[4])<=65536: raise Exception("Invalid repeat_counts (must be 0 for infinity or [1,65536])")
-        if not args[5] in ["0","1"]: raise Exception("wait_for_trigger must be 0 or 1")
+        if args[0] == args[1] == args[2] == args[3] == "": raise Exception(
+            "At least one channel must have non-empty wfm")
+        if not 0 <= int(args[4]) <= 65536: raise Exception(
+            "Invalid repeat_counts (must be 0 for infinity or [1,65536])")
+        if not args[5] in ["0", "1"]: raise Exception("wait_for_trigger must be 0 or 1")
         if not args[6] == "0": raise Exception("goto_one is not implemented and therefore must be set to 0")
-        if not -2<=int(args[7])<=len(self.seq): raise Exception("Invalid logic_jump_target argument (must be in [-2, N] where N is the number of line in the sequence)")
-        if not 0<=int(args[8])<=len(self.seq): raise Exception("Invalid finnished_goto argument (must be in [0, N] where N is the number of line in the sequence)")
+        if not -2 <= int(args[7]) <= len(self.seq): raise Exception(
+            "Invalid logic_jump_target argument (must be in [-2, N] where N is the number of line in the sequence)")
+        if not 0 <= int(args[8]) <= len(self.seq): raise Exception(
+            "Invalid finnished_goto argument (must be in [0, N] where N is the number of line in the sequence)")
 
     def get_str(self):
         s = "MAGIC 3004A\r\nLINES {}".format(len(self.seq))
-        if len(self.seq)>8000: raise Exception("More than 8000 lines may not work...")
+        if len(self.seq) > 8000: raise Exception("More than 8000 lines may not work...")
         for line in self.seq:
             self.verify_line(line)
-            s+= line
+            s += line
         return s
 
     def get_bytes(self):
-        return bytes(self.get_str() ,encoding='ascii')
+        return bytes(self.get_str(), encoding='ascii')

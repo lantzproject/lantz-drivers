@@ -1,5 +1,4 @@
 import sys
-from time import *
 
 # we use the tinyrpc package to connect to the JSON-RPC server
 if sys.version_info.major > 2:
@@ -34,7 +33,6 @@ else:
 import struct
 import base64
 import six
-import numpy as np
 from enum import Enum
 
 

@@ -22,9 +22,9 @@
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
+from .base import Channel, Device, System, Task
+from .channels import *
+from .constants import Constants, Types
+from .tasks import *
 
 __all__ = ['base', 'channels', 'tasks', 'constants']
-from .base import System, Task, Channel, Device
-from .channels import *
-from .tasks import *
-from .constants import Constants, Types

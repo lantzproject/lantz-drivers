@@ -10,40 +10,41 @@
 from collections import OrderedDict
 
 import numpy as np
-from lantz import Action, Feat, DictFeat, ureg
+from lantz.core import Action, DictFeat, Feat, ureg
+
 from lantz.drivers.legacy.serial import SerialDriver
 from lantz.drivers.legacy.visa import GPIBVisaDriver
 
 SENS = OrderedDict([
-        ('2 nV/fA', 0),
-        ('5 nV/fA', 1),
-        ('10 nV/fA', 2),
-        ('20 nV/fA', 3),
-        ('50 nV/fA', 4),
-        ('100 nV/fA', 5),
-        ('200 nV/fA', 6),
-        ('500 nV/fA', 7),
-        ('1 uV/pA', 8),
-        ('2 uV/pA', 9),
-        ('5 uV/pA', 10),
-        ('10 uV/pA', 11),
-        ('20 uV/pA', 12),
+    ('2 nV/fA', 0),
+    ('5 nV/fA', 1),
+    ('10 nV/fA', 2),
+    ('20 nV/fA', 3),
+    ('50 nV/fA', 4),
+    ('100 nV/fA', 5),
+    ('200 nV/fA', 6),
+    ('500 nV/fA', 7),
+    ('1 uV/pA', 8),
+    ('2 uV/pA', 9),
+    ('5 uV/pA', 10),
+    ('10 uV/pA', 11),
+    ('20 uV/pA', 12),
 
-        ('50 uV/pA', 13),
-        ('100 uV/pA', 14),
-        ('200 uV/pA', 15),
-        ('500 uV/pA', 16),
-        ('1 mV/nA', 17),
-        ('2 mV/nA', 18),
-        ('5 mV/nA', 19),
-        ('10 mV/nA', 20),
-        ('20 mV/nA', 21),
-        ('50 mV/nA', 22),
-        ('100 mV/nA', 23),
-        ('200 mV/nA', 24),
-        ('500 mV/nA', 25),
-        ('1 V/uA', 26)
-        ])
+    ('50 uV/pA', 13),
+    ('100 uV/pA', 14),
+    ('200 uV/pA', 15),
+    ('500 uV/pA', 16),
+    ('1 mV/nA', 17),
+    ('2 mV/nA', 18),
+    ('5 mV/nA', 19),
+    ('10 mV/nA', 20),
+    ('20 mV/nA', 21),
+    ('50 mV/nA', 22),
+    ('100 mV/nA', 23),
+    ('200 mV/nA', 24),
+    ('500 mV/nA', 25),
+    ('1 V/uA', 26)
+])
 
 TCONSTANTS = OrderedDict([
     ('10 us', 0),
@@ -85,6 +86,7 @@ SAMPLE_RATES = OrderedDict([
     ('512 Hz', 13),
     ('trigger', 14)
 ])
+
 
 class _SR830(object):
 
@@ -187,7 +189,6 @@ class _SR830(object):
     def input_filter(self, value):
         self.send('ILIN {}'.format(value))
 
-
     # GAIN and TIME CONSTANT COMMANDS.
 
     @Feat(values=SENS)
@@ -240,7 +241,6 @@ class _SR830(object):
     def sync_filter(self, value):
         self.send('SYNC {}'.format(value))
 
-
     ## DISPLAY and OUTPUT COMMANDS
 
     @DictFeat(keys={1, 2})
@@ -285,7 +285,6 @@ class _SR830(object):
     @analog_output.setter
     def analog_output(self, key, value):
         self.query('AUXV {}, {}'.format(key, value))
-
 
     ## SETUP COMMANDS
 
@@ -333,7 +332,6 @@ class _SR830(object):
         :param location: non-volatile storage location.
         """
         self.send('SSET'.format(location))
-
 
     ## AUTO FUNCTIONS
 
@@ -391,7 +389,6 @@ class _SR830(object):
     def auto_offset(self):
         self.auto_offset_async()
         self.wait_bit1()
-
 
     ## DATA STORAGE COMMANDS
 
@@ -453,7 +450,6 @@ class _SR830(object):
         """
         self.send('REST')
 
-
     ## DATA TRANSFER COMMANDS
 
     @DictFeat(keys={'x', 'y', 'r', 't', 1, 2}, units='volt')
@@ -467,7 +463,7 @@ class _SR830(object):
     def measure(self, channels):
         d = {'x': '1', 'y': '2', 'r': '3', 't': '4',
              '1': '5', '2': '6', '3': '7', '4': '8',
-             'f': '9'} # '': 10, '': 11} TODO: How to deal with these?
+             'f': '9'}  # '': 10, '': 11} TODO: How to deal with these?
         channels = ','.join(d[ch] for ch in channels)
         self.query('SNAP? {}'.format(channels))
 
@@ -504,13 +500,12 @@ class _SR830(object):
     # Fast
     # STRD
 
-class SR830GPIB(_SR830, GPIBVisaDriver):
 
+class SR830GPIB(_SR830, GPIBVisaDriver):
     RECV_TERMINATION = '\n'
     SEND_TERMINATION = '\n'
 
 
 class SR830Serial(_SR830, SerialDriver):
-
     RECV_TERMINATION = '\n'
     SEND_TERMINATION = '\n'

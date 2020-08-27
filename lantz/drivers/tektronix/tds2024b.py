@@ -12,10 +12,7 @@
 import struct
 
 import numpy as np
-
-from lantz.feat import Feat
-from lantz.action import Action
-from lantz import MessageBasedDriver
+from lantz.core import Action, Feat, MessageBasedDriver
 
 
 class TDS2024(MessageBasedDriver):
@@ -78,7 +75,7 @@ class TDS2024(MessageBasedDriver):
         """ X/Y Increment Origin and Offset.
         """
         commands = 'XZE?;XIN?;YZE?;YMU?;YOFF?'
-        #params = self.query(":WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?;")
+        # params = self.query(":WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?;")
         params = self.query(':WFMPRE:{}'.format(commands))
         params = {k: float(v) for k, v in zip(commands.split(';'), params.split(';'))}
         return params
@@ -101,10 +98,10 @@ class TDS2024(MessageBasedDriver):
         self.send('CURV?')
         answer = self.recv()
         numdigs = int(answer[1])
-        bytecount = int(answer[2:2+numdigs])
-        data = answer[2+numdigs:]
+        bytecount = int(answer[2:2 + numdigs])
+        data = answer[2 + numdigs:]
         length = bytecount / 2
-        data = struct.unpack("{}H".format(length), data[0:2*length])
+        data = struct.unpack("{}H".format(length), data[0:2 * length])
         params = self.acqparams()
         data = np.array(list(map(float, data)))
         yoff = params['YOFF?']
@@ -112,7 +109,7 @@ class TDS2024(MessageBasedDriver):
         yze = params['YZE?']
         xin = params['XIN?']
         xze = params['XZE?']
-        ydata = ( data - yoff) * ymu + yze
+        ydata = (data - yoff) * ymu + yze
         xdata = np.arange(len(data)) * xin + xze
         return list(xdata), list(data)
 
@@ -170,7 +167,7 @@ if __name__ == '__main__':
     osc.triggerlevel()
     osc.trigger = "AUTO"
     print(osc.trigger)
-    #osc.autoconf()
+    # osc.autoconf()
     params = osc.acqparams()
 
     if args.view:

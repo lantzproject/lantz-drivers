@@ -7,12 +7,10 @@ import visa
 visa.ResourceManager().list_resources()
 """
 
+from lantz.core import Feat, MessageBasedDriver
 
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat
 
 class PM100D(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'read_termination': '\n',

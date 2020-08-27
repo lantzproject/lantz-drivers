@@ -7,10 +7,11 @@
     Author: Alexandre Bourassa
     Date: 04/08/2017
 """
-from lantz import Driver
-from lantz.driver import Feat
-from lantz.drivers.ni.daqmx import DigitalOutputTask, DigitalOutputChannel
 import numpy as np
+from lantz.core import Driver, Feat
+
+from lantz.drivers.ni.daqmx import DigitalOutputChannel, DigitalOutputTask
+
 
 class DigitalSwitch(Driver):
 
@@ -31,7 +32,7 @@ class DigitalSwitch(Driver):
     def finalize(self):
         self.task.clear()
 
-    @Feat(values={True:True, False:False})
+    @Feat(values={True: True, False: False})
     def state(self):
         return self._state
 

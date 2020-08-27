@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-from lantz.driver import Driver
+from lantz.core import Driver, Feat, Q_
+
 from lantz.drivers.swabian.pulsestreamer.lib.pulse_streamer_grpc import PulseStreamer
-from lantz import Q_
+
 from spyre.widgets.rangespace import RangeDict
-from lantz import Action, Feat, DictFeat, ureg
 
 
 class Pulses(Driver):
@@ -499,7 +499,7 @@ class Pulses(Driver):
                    reset + polarize + L_background + L_CPMG_Core + wait + probe + bg_decay + L_readout
 
         self.total_time = self.reset + self.polarize_time + self.settle + pi_ns * (
-                    1 + N) + longest_time + self.laser_time + self.buf_after_init + self.readout_time
+                1 + N) + longest_time + self.laser_time + self.buf_after_init + self.readout_time
         seqs = [single_T2(int(round(mw_time.to("ns").magnitude))) for mw_time in params.array]
         return seqs
 
@@ -668,8 +668,9 @@ class Pulses(Driver):
                     bin_in_readout = -1 * remainin_laser_overlap
                     excitation1 = \
                         [(
-                         int(self.laser_time - bin_in_laser), [self.channel_dict["laser"], self.channel_dict["laser2"]],
-                         *self.IQ)]
+                            int(self.laser_time - bin_in_laser),
+                            [self.channel_dict["laser"], self.channel_dict["laser2"]],
+                            *self.IQ)]
                     excitation2 = \
                         [(bin_in_laser,
                           [self.channel_dict["laser"], self.channel_dict["laser2"], self.channel_dict["gate"]],

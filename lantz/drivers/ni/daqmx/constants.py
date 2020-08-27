@@ -8,11 +8,10 @@
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-
 from lantz.drivers.legacy.visalib import RichEnum
 
-class Constants(metaclass=RichEnum):
 
+class Constants(metaclass=RichEnum):
     _PREFIX = 'DAQMX_'
 
     Buf_Input_BufSize = 0x186C
@@ -913,7 +912,7 @@ class Constants(metaclass=RichEnum):
     Val_Task_Reserve = 4
     Val_Task_Unreserve = 5
     Val_Task_Abort = 6
-    Val_SynchronousEventCallbacks = (1<<0)
+    Val_SynchronousEventCallbacks = (1 << 0)
     Val_Acquired_Into_Buffer = 1
     Val_Transferred_From_Buffer = 2
     Val_ResetTimer = 0
@@ -955,25 +954,25 @@ class Constants(metaclass=RichEnum):
     Val_Default = -1
     Val_WaitInfinitely = -1.0
     Val_Auto = -1
-    Val_Save_Overwrite = (1<<0)
-    Val_Save_AllowInteractiveEditing = (1<<1)
-    Val_Save_AllowInteractiveDeletion = (1<<2)
-    Val_Bit_TriggerUsageTypes_Advance = (1<<0)
-    Val_Bit_TriggerUsageTypes_Pause = (1<<1)
-    Val_Bit_TriggerUsageTypes_Reference = (1<<2)
-    Val_Bit_TriggerUsageTypes_Start = (1<<3)
-    Val_Bit_TriggerUsageTypes_Handshake = (1<<4)
-    Val_Bit_TriggerUsageTypes_ArmStart = (1<<5)
-    Val_Bit_CouplingTypes_AC = (1<<0)
-    Val_Bit_CouplingTypes_DC = (1<<1)
-    Val_Bit_CouplingTypes_Ground = (1<<2)
-    Val_Bit_CouplingTypes_HFReject = (1<<3)
-    Val_Bit_CouplingTypes_LFReject = (1<<4)
-    Val_Bit_CouplingTypes_NoiseReject = (1<<5)
-    Val_Bit_TermCfg_RSE = (1<<0)
-    Val_Bit_TermCfg_NRSE = (1<<1)
-    Val_Bit_TermCfg_Diff = (1<<2)
-    Val_Bit_TermCfg_PseudoDIFF = (1<<3)
+    Val_Save_Overwrite = (1 << 0)
+    Val_Save_AllowInteractiveEditing = (1 << 1)
+    Val_Save_AllowInteractiveDeletion = (1 << 2)
+    Val_Bit_TriggerUsageTypes_Advance = (1 << 0)
+    Val_Bit_TriggerUsageTypes_Pause = (1 << 1)
+    Val_Bit_TriggerUsageTypes_Reference = (1 << 2)
+    Val_Bit_TriggerUsageTypes_Start = (1 << 3)
+    Val_Bit_TriggerUsageTypes_Handshake = (1 << 4)
+    Val_Bit_TriggerUsageTypes_ArmStart = (1 << 5)
+    Val_Bit_CouplingTypes_AC = (1 << 0)
+    Val_Bit_CouplingTypes_DC = (1 << 1)
+    Val_Bit_CouplingTypes_Ground = (1 << 2)
+    Val_Bit_CouplingTypes_HFReject = (1 << 3)
+    Val_Bit_CouplingTypes_LFReject = (1 << 4)
+    Val_Bit_CouplingTypes_NoiseReject = (1 << 5)
+    Val_Bit_TermCfg_RSE = (1 << 0)
+    Val_Bit_TermCfg_NRSE = (1 << 1)
+    Val_Bit_TermCfg_Diff = (1 << 2)
+    Val_Bit_TermCfg_PseudoDIFF = (1 << 3)
     Val_4Wire = 4
     Val_5Wire = 5
     Val_HighResolution = 10195
@@ -1506,21 +1505,23 @@ class Constants(metaclass=RichEnum):
     Val_Switch_Topology_2593_Independent = "2593/Independent"
     Val_Switch_Topology_2599_2_SPDT = "2599/2-SPDT"
 
+
 import ctypes as ct
+
 
 class DoNothing(object):
 
     def from_param(self, param):
         return param
 
-class Types(metaclass=RichEnum):
 
+class Types(metaclass=RichEnum):
     _ = DoNothing()
 
     void_p = ct.c_void_p
 
     TaskHandle = ct.c_void_p
-    #TaskHandle = ct.c_uint32
+    # TaskHandle = ct.c_uint32
     bool32 = ct.c_uint32
 
     string = ct.c_char_p

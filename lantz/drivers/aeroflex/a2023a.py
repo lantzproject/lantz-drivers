@@ -16,8 +16,8 @@
 
 import enum
 
-from lantz.core import Feat, Action, MessageBasedDriver
-from lantz.core.mfeats import BoolFeat, QuantityFeat, QuantityDictFeat, EnumFeat
+from lantz.core import Action, Feat, MessageBasedDriver
+from lantz.core.mfeats import BoolFeat, QuantityFeat
 
 
 class A2023a(MessageBasedDriver):

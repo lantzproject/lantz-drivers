@@ -1,7 +1,7 @@
-from lantz.driver import Driver
-from lantz import Feat, Action
 import cv2
 import numpy as np
+from lantz.core import Action, Driver, Feat
+
 
 class USBCam(Driver):
 

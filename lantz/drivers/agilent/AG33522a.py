@@ -14,11 +14,9 @@
     
 """
 
-import numpy as np
-import lantz
-from lantz import Action, Feat, DictFeat, ureg
 from collections import OrderedDict
-from lantz.messagebased import MessageBasedDriver
+
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 class AG33522A(MessageBasedDriver):

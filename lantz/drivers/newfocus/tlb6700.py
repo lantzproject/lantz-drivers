@@ -1,9 +1,8 @@
 import ctypes as ct
-
-from lantz import Driver, Feat, Action
-from lantz.errors import InstrumentError
-from lantz.foreign import LibraryDriver
 import time
+
+from lantz.core import Feat
+from lantz.core.foreign import LibraryDriver
 
 
 class TLB6700(LibraryDriver):
@@ -13,8 +12,6 @@ class TLB6700(LibraryDriver):
         super().__init__(*args, **kwargs)
         self.initialize()
         self.dev_id = self.get_id()
-
-
 
     def initialize(self):
         answer = self.lib.newp_usb_init_system()
@@ -58,7 +55,7 @@ class TLB6700(LibraryDriver):
         buf_address = ct.addressof(buf)
         success = self.lib.newp_usb_get_device_info(buf_address)
         if success == 0:
-            return buf.value.decode("utf-8").replace(r"\r\n;","")
+            return buf.value.decode("utf-8").replace(r"\r\n;", "")
         else:
             raise Exception("No device found!")
 
@@ -118,20 +115,20 @@ class TLB6700(LibraryDriver):
         self.uninitialize()
         self.dev_id = None
 
-    @Feat(units="nm", limits=(1035,1075))
+    @Feat(units="nm", limits=(1035, 1075))
     def target_wavelength(self):
         """Target Wavelength """
-        return float(self.query("SOUR:WAVE?"))*1e-9
+        return float(self.query("SOUR:WAVE?")) * 1e-9
 
     @target_wavelength.setter
     def target_wavelength(self, twl):
         """Target Wavelength"""
         self.check_success(self.write("SOUR:WAVE {:.2f}".format(twl)))
 
-    @Feat(units = "nm")
+    @Feat(units="nm")
     def measured_wavelength(self):
         """Measured Wavelength"""
-        return float(self.query("SENS:WAVE"))*1e-9
+        return float(self.query("SENS:WAVE")) * 1e-9
 
     @Feat(values={True: 1, False: 0})
     def laser_on(self):
@@ -153,14 +150,13 @@ class TLB6700(LibraryDriver):
         """Lambda Track"""
         self.check_success(self.write("OUTP:TRAC {:d}".format(state)))
 
-    @Feat(units = "mA")
+    @Feat(units="mA")
     def measured_current(self):
         return float(self.query("SENS:CURR:DIOD"))
 
-    @Feat(units = "mW")
+    @Feat(units="mW")
     def measured_power(self):
         return float(self.query("SENS:POW:DIOD"))
-
 
     @Feat(units="mW", limits=(0, 18.1))
     def target_power(self):
@@ -180,7 +176,7 @@ class TLB6700(LibraryDriver):
 
     @Feat(units="mA", limits=(0, 180))
     def target_current(self):
-        return float(self.query("SOUR:CURR:DIOD?"))*1e-3
+        return float(self.query("SOUR:CURR:DIOD?")) * 1e-3
 
     @target_current.setter
     def target_current(self, current):

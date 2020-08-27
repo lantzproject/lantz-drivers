@@ -1,20 +1,20 @@
-from lantz.driver import Driver
-from lantz import Feat, Action
-
 from telnetlib import Telnet
 
+from lantz.core import Driver, Feat
+
 from lantz.drivers.bristol import Bristol6XX
+
 
 class Bristol671(Driver, Bristol6XX):
 
     def __init__(self, ip, port=23, timeout=1):
         super().__init__()
-        self.con_args = [ip,port,timeout]
+        self.con_args = [ip, port, timeout]
 
     def initialize(self):
         self.resource = Telnet(*self.con_args)
         self.clear_read_buffer()
-    
+
     def clear_read_buffer(self, timeout=0.1):
         while self.read(timeout=timeout) != '':
             pass
@@ -23,7 +23,7 @@ class Bristol671(Driver, Bristol6XX):
         self.resource.close()
 
     def write(self, cmd, write_termination='\r\n'):
-        return self.resource.write(bytes(cmd+write_termination, 'ascii'))
+        return self.resource.write(bytes(cmd + write_termination, 'ascii'))
 
     def read(self, read_termination='\r\n', timeout=1):
         byte_ans = self.resource.read_until(bytes(read_termination, 'ascii'), timeout)

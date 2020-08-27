@@ -1,12 +1,6 @@
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat, DictFeat, Action, ureg
-
 from collections import OrderedDict
 
-# from lantz import Q_
-
-import socket
-import warnings
+from lantz.core import Feat, MessageBasedDriver
 
 
 class N51xx(MessageBasedDriver):

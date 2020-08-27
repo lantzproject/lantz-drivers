@@ -1,11 +1,8 @@
-from lantz import Feat, DictFeat, Action
-from lantz.messagebased import MessageBasedDriver
-
-from pyvisa import constants
-
-from numpy import abs, ceil
-
 from time import sleep
+
+from lantz.core import Feat, MessageBasedDriver
+from numpy import abs, ceil
+from pyvisa import constants
 
 
 class SP2150i(MessageBasedDriver):
@@ -77,7 +74,6 @@ class SP2150i(MessageBasedDriver):
                                            scan_time)
         else:
             return
-
 
     @Feat(limits=(0, max_speed))
     def scan_speed(self):
@@ -155,6 +151,7 @@ class SP2150i(MessageBasedDriver):
         self.write(message)
         sleep(wait_time)
         return self.read()
+
 
 if __name__ == '__main__':
     with SP2150i('ASRL4::INSTR') as inst:

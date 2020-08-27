@@ -16,5 +16,4 @@
 
 from .tlb6700 import TLB6700
 
-
 __all__ = ['TLB6700']

@@ -9,16 +9,14 @@
     Date: 9/27/2016
 """
 
-from lantz import Driver
-from lantz.driver import Feat, DictFeat, Action
-from lantz.drivers.ni.daqmx import AnalogOutputTask, VoltageOutputChannel
-from lantz.drivers.ni.simple_daq import Read_DAQ
-
-from lantz import Q_
-
 import time
 
 import numpy as np
+from lantz.core import Action, Driver, Feat, Q_
+
+from lantz.drivers.ni.daqmx import AnalogOutputTask, VoltageOutputChannel
+from lantz.drivers.ni.simple_daq import Read_DAQ
+
 
 def enforce_units(val, units):
     if not isinstance(val, Q_):
@@ -27,9 +25,11 @@ def enforce_units(val, units):
         val = val.to(units)
     return val
 
+
 def enforce_point_units(point, units='um'):
-    point = enforce_units(point[0], units) , enforce_units(point[1], units)
+    point = enforce_units(point[0], units), enforce_units(point[1], units)
     return point
+
 
 class FSM300(Driver):
 
@@ -62,7 +62,6 @@ class FSM300(Driver):
     def finalize(self):
         self.task.clear()
         super().finalize()
-
 
     def ao_smooth_func(self, init_point, final_point):
         init_x, init_y = init_point
@@ -105,7 +104,6 @@ class FSM300(Driver):
     def abs_position(self):
         return self._position
 
-
     @abs_position.setter
     def abs_position(self, point):
         point = enforce_point_units(point)
@@ -123,7 +121,7 @@ class FSM300(Driver):
             task_config = {
                 'data': step_voltages,
                 'auto_start': False,
-                'timeout': Q_(0,'s'),
+                'timeout': Q_(0, 's'),
                 'group_by': 'scan',
             }
             self.task.write(**task_config)
@@ -136,7 +134,7 @@ class FSM300(Driver):
     def line_scan(self, init_point, final_point, steps, acq_task, acq_rate=Q_('20 kHz'), pts_per_pos=100):
         init_point = enforce_point_units(init_point)
         final_point = enforce_point_units(final_point)
-        timeout = enforce_units(1.5*(pts_per_pos*steps/acq_rate), units='s')
+        timeout = enforce_units(1.5 * (pts_per_pos * steps / acq_rate), units='s')
         # AO smooth move to initial point
         self.abs_position = init_point
         step_voltages = self.ao_linear_func(init_point, final_point, steps)
@@ -177,7 +175,7 @@ class FSM300(Driver):
             self.task.stop()
             scanned = scanned.reshape((steps, pts_per_pos + 1))
             averaged = np.diff(scanned).mean(axis=1)
-            return averaged*acq_rate.to('Hz').magnitude
+            return averaged * acq_rate.to('Hz').magnitude
         elif acq_task.IO_TYPE == 'AI':
             step_voltages = np.repeat(step_voltages, pts_per_pos, axis=0)
             clock_config = {
@@ -208,6 +206,7 @@ class FSM300(Driver):
         else:
             pass
 
+
 class Read_FSM(Driver):
     def __init__(self, x_ao_ch, y_ao_ch,
                  ao_smooth_rate=Q_('10 kHz'), ao_smooth_steps=Q_('1000 1/V'),
@@ -215,7 +214,8 @@ class Read_FSM(Driver):
                  cal=(Q_(7.6, 'um/V'), Q_(10, 'um/V'))):
 
         super().__init__()
-        self.x_limits, self.y_limits = [(val / Q_('1 V')).m for val in limits[0]], [(val / Q_('1 V')).m for val in limits[1]]
+        self.x_limits, self.y_limits = [(val / Q_('1 V')).m for val in limits[0]], [(val / Q_('1 V')).m for val in
+                                                                                    limits[1]]
         self.ao_smooth_rate, self.ao_smooth_steps, self.cal = ao_smooth_rate, ao_smooth_steps, cal
         self.x_ao_ch, self.y_ao_ch = x_ao_ch, y_ao_ch
 
@@ -234,7 +234,7 @@ class Read_FSM(Driver):
 
     @Action()
     def new_input_task(self, read_chs):
-        self.task_name = 'Read_FSM_{}'.format(np.random.randint(2**31))
+        self.task_name = 'Read_FSM_{}'.format(np.random.randint(2 ** 31))
         self._daq.new_task(self.task_name, read_chs)
         self.acq_task = self._daq._tasks[self.task_name]
 
@@ -245,7 +245,7 @@ class Read_FSM(Driver):
 
         init_point = enforce_point_units(init_point)
         final_point = enforce_point_units(final_point)
-        timeout = enforce_units(1.5*(pts_per_pos*steps/acq_rate), units='s')
+        timeout = enforce_units(1.5 * (pts_per_pos * steps / acq_rate), units='s')
         # AO smooth move to initial point
         self._set_position(*init_point)
         step_voltages = self.ao_linear_func(init_point, final_point, steps)
@@ -285,8 +285,8 @@ class Read_FSM(Driver):
             self.task.stop()
             scanned = scanned.reshape((steps, pts_per_pos + 1))
             averaged = np.diff(scanned).mean(axis=1)
-            self._position = final_point #Set the position now to be at the end of the line
-            return averaged*acq_rate.to('Hz').m
+            self._position = final_point  # Set the position now to be at the end of the line
+            return averaged * acq_rate.to('Hz').m
         elif self.acq_task.IO_TYPE == 'AI':
             step_voltages = np.repeat(step_voltages, pts_per_pos, axis=0)
             clock_config = {
@@ -312,7 +312,7 @@ class Read_FSM(Driver):
             self.task.stop()
             scanned = scanned.reshape((steps, pts_per_pos))
             averaged = scanned.mean(axis=1)
-            self._position = final_point #Set the position now to be at the end of the line
+            self._position = final_point  # Set the position now to be at the end of the line
             return averaged
         else:
             pass
@@ -335,11 +335,11 @@ class Read_FSM(Driver):
 
     @Action()
     def set_position(self, x, y):
-        self._set_position(x,y)
-        self._position = enforce_point_units([x,y])
+        self._set_position(x, y)
+        self._position = enforce_point_units([x, y])
 
     def _set_position(self, x, y):
-        target = enforce_point_units([x,y])
+        target = enforce_point_units([x, y])
         step_voltages = self.ao_smooth_func(self._position, target)
         if step_voltages.size:
             clock_config = {
@@ -353,7 +353,7 @@ class Read_FSM(Driver):
             task_config = {
                 'data': step_voltages,
                 'auto_start': False,
-                'timeout': Q_(0,'s'),
+                'timeout': Q_(0, 's'),
                 'group_by': 'scan',
             }
             self.task.write(**task_config)
@@ -367,13 +367,13 @@ class Read_FSM(Driver):
 
     def ao_smooth_func(self, pt0, pt1):
         pt0, pt1 = self.positions_to_volt(pt0), self.positions_to_volt(pt1)
-        steps = int(np.ceil(max(abs(pt1-pt0)) * self.ao_smooth_steps.to('1/V').m))
+        steps = int(np.ceil(max(abs(pt1 - pt0)) * self.ao_smooth_steps.to('1/V').m))
 
         versine_steps = (1.0 - np.cos(np.linspace(0.0, np.pi, steps))) / 2.0
-        return np.outer(np.ones(steps), pt0) + np.outer(versine_steps, pt1-pt0)
+        return np.outer(np.ones(steps), pt0) + np.outer(versine_steps, pt1 - pt0)
 
     def ao_linear_func(self, pt0, pt1, steps):
         pt0, pt1 = self.positions_to_volt(pt0), self.positions_to_volt(pt1)
         linear_steps = np.linspace(0.0, 1.0, steps)
 
-        return np.outer(np.ones(steps), pt0) + np.outer(linear_steps, pt1-pt0)
+        return np.outer(np.ones(steps), pt0) + np.outer(linear_steps, pt1 - pt0)

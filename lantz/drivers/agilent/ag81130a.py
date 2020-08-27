@@ -1,12 +1,7 @@
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat, DictFeat, Action
 from collections import OrderedDict
 
-# from lantz import Q_
 import numpy as np
-
-import socket
-import warnings
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 class Ag81130A(MessageBasedDriver):

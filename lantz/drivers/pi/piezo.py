@@ -10,22 +10,17 @@
 
     Source: Instruction Manual (PI)
 """
-
-from lantz.feat import Feat
-from lantz.action import Action
-from lantz.messagebased import MessageBasedDriver
-# from pyvisa import constants
-from lantz import Q_, ureg
-# from lantz.processors import convert_to
 import time
-import numpy as np
-# import copy
 from collections import OrderedDict
 
-if __name__=='__main__':
-    from error_codes import error_codes
-else:
-    from .error_codes import error_codes
+import numpy as np
+from lantz.core import Action, Feat, MessageBasedDriver, ureg
+
+# if __name__ == '__main__':
+#    from error_codes import error_codes
+# else:
+#    from .error_codes import error_codes
+from .error_codes import error_codes
 
 
 def parse_line(line):
@@ -111,7 +106,7 @@ class Piezo(MessageBasedDriver):
                            'timeout': 20}, }
 
     def __init__(self, *args, **kwargs):
-        self.sleeptime_after_move = kwargs.pop('sleeptime_after_move', 0*ureg.ms)
+        self.sleeptime_after_move = kwargs.pop('sleeptime_after_move', 0 * ureg.ms)
         self.axis = kwargs.pop('axis', 'X')
         super().__init__(*args, **kwargs)
 
@@ -174,7 +169,7 @@ class Piezo(MessageBasedDriver):
 
     @servo.setter
     def servo(self, state):
-        self.write('SVO {} {}'.format(self.axis, state) )
+        self.write('SVO {} {}'.format(self.axis, state))
         return self.errors
 
     @Feat(units='um/s')
@@ -196,20 +191,20 @@ class Piezo(MessageBasedDriver):
     def position(self, position):
         return self.move_to(position, self.sleeptime_after_move)
 
-    @Action(units=('um','ms'))
+    @Action(units=('um', 'ms'))
     def move_to(self, position, timeout=None):
         ''' Move to an absolute position the stage (closed-loop only)'''
         self.write('MOV {} {}'.format(self.axis, position))
-        time.sleep(timeout * 1e-3) # Give the stage time to move! (in seconds!)
+        time.sleep(timeout * 1e-3)  # Give the stage time to move! (in seconds!)
         return self.errors
 
     @Feat(units='um')
-    def read_stage_position(self, nr_avg = 1):
+    def read_stage_position(self, nr_avg=1):
         ''' Read the current position from the stage'''
         positions = [self.position.magnitude for n in range(nr_avg)]
         return np.mean(positions)
 
-    @Action(units=('um',None))
+    @Action(units=('um', None))
     def measure_step_response(self, stepsize, points):
         '''Python implementation to measure a step response of size  stepsize.
         Measure number of points as fast as possible.
@@ -235,10 +230,10 @@ class Piezo(MessageBasedDriver):
             self.log.error('Servo should be on')
             return
         import time
-        self.move_to(self.position + stepsize*ureg.um, 0)
+        self.move_to(self.position + stepsize * ureg.um, 0)
         timepos = np.array([[time.time(), self.position.magnitude] for i in range(points)])
-        timepos[:,0] -= timepos[0,0] #correct time offset
-        timepos[:,0] *= 1000 # make it milliseconds
+        timepos[:, 0] -= timepos[0, 0]  # correct time offset
+        timepos[:, 0] *= 1000  # make it milliseconds
 
         return timepos
 
@@ -250,7 +245,8 @@ class Piezo(MessageBasedDriver):
         plt.ylabel('Position [um]')
         return lines
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     # before operating, ensure that the notch filters are set to the right 
     # frequencies. These frequencies depend on the load on the piezo, and can 
     # be determined in NanoCapture.
@@ -258,7 +254,7 @@ if __name__=='__main__':
 
     import lantz
     import visa
-    import lantz.drivers.pi.piezo as pi
+
     rm = visa.ResourceManager('@py')
     lantz.messagebased._resource_manager = rm
     try:
@@ -267,4 +263,3 @@ if __name__=='__main__':
         lantzlog = lantz.log.log_to_screen(level=lantz.log.INFO)
     with Piezo('ASRL/dev/ttyUSB0::INSTR') as inst:
         start_test_app(inst)
-

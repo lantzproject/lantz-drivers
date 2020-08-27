@@ -1,7 +1,10 @@
-from lantz import Driver, DictFeat, Action
-import requests
 import re
-from urllib.parse import urlparse, ParseResult
+from urllib.parse import ParseResult, urlparse
+
+import requests
+
+from lantz.core import Action, DictFeat, Driver
+
 
 class Relay(Driver):
 
@@ -21,7 +24,7 @@ class Relay(Driver):
 
     def parse_state(self, resp_text):
         relay_words = [m.start() for m in re.finditer('Relay', resp_text)][2:]
-        relay_status = [resp_text[s+33:s+36] for s in relay_words]
+        relay_status = [resp_text[s + 33:s + 36] for s in relay_words]
         relay_status = [False if v == 'OFF' else True for v in relay_status]
         return relay_status
 

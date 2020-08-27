@@ -13,14 +13,15 @@
 """
 
 import enum
-import time
 import struct
+import time
 from collections import namedtuple
 
 import usb
+from lantz.core import errors
+
 from lantz.drivers.legacy.textual import TextualMixin
-from lantz import errors
-from lantz.drivers.legacy.usb import find_devices, find_interfaces, find_endpoint, USBDriver
+from lantz.drivers.legacy.usb import USBDriver, find_devices, find_endpoint, find_interfaces
 
 
 class MSGID(enum.IntEnum):
@@ -32,7 +33,7 @@ class MSGID(enum.IntEnum):
     VENDOR_SPECIFIC_OUT = 126
     REQUEST_VENDOR_SPECIFIC_IN = 127
     VENDOR_SPECIFIC_IN = 127
-    TRIGGER = 128 # for USB488
+    TRIGGER = 128  # for USB488
 
 
 class REQUEST(enum.IntEnum):
@@ -49,6 +50,7 @@ class REQUEST(enum.IntEnum):
 def find_tmc_devices(vendor=None, product=None, serial_number=None, custom_match=None, **kwargs):
     """Find connected USBTMC devices. See lantz.usb.find_devices for more info.
     """
+
     def is_usbtmc(dev):
         if custom_match and not custom_match(dev):
             return False
@@ -87,7 +89,6 @@ class BulkInMessage(namedtuple('BulkInMessage', 'msgid btag btaginverse '
         data = data[12:]
         return cls(msgid, btag, btaginverse, transfer_size, transfer_attributes, data)
 
-
     @staticmethod
     def build_array(btag, transfer_size, term_char=None):
         """
@@ -109,7 +110,6 @@ class BulkInMessage(namedtuple('BulkInMessage', 'msgid btag btaginverse '
 
 
 class USBTMCDriver(USBDriver, TextualMixin):
-
     SEND_TERMINATION = ''
     RECV_TERMINATION = '\n'
 
@@ -127,7 +127,7 @@ class USBTMCDriver(USBDriver, TextualMixin):
         time.sleep(0.01)
 
         self._get_capabilities()
-    
+
         self._btag = 0
 
         if not (self.usb_recv_ep and self.usb_send_ep):
@@ -135,14 +135,14 @@ class USBTMCDriver(USBDriver, TextualMixin):
 
     def _get_capabilities(self):
         cap = self.usb_dev.ctrl_transfer(
-                   usb.util.build_request_type(usb.util.CTRL_IN,
-                                               usb.util.CTRL_TYPE_CLASS,
-                                               usb.util.CTRL_RECIPIENT_INTERFACE),
-                   REQUEST.GET_CAPABILITIES,
-                   0x0000,
-                   self.usb_intf.index,
-                   0x0018,
-                   timeout=self.TIMEOUT)
+            usb.util.build_request_type(usb.util.CTRL_IN,
+                                        usb.util.CTRL_TYPE_CLASS,
+                                        usb.util.CTRL_RECIPIENT_INTERFACE),
+            REQUEST.GET_CAPABILITIES,
+            0x0000,
+            self.usb_intf.index,
+            0x0018,
+            timeout=self.TIMEOUT)
 
     def _find_interface(self, dev, setting):
         interfaces = find_interfaces(dev, bInterfaceClass=0xFE, bInterfaceSubClass=3)
@@ -208,4 +208,3 @@ class USBTMCDriver(USBDriver, TextualMixin):
         return received
 
     recv.__doc__ = TextualMixin.recv.__doc__
-

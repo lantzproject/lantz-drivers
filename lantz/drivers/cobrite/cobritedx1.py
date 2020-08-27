@@ -1,8 +1,7 @@
-from lantz import Feat, DictFeat, Action
-from lantz.messagebased import MessageBasedDriver
-from pyvisa import constants
-
 from time import sleep
+
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+from pyvisa import constants
 
 
 class CoBriteDX1(MessageBasedDriver):
@@ -23,8 +22,8 @@ class CoBriteDX1(MessageBasedDriver):
     sbs_lims = (0, 1, 0.1)
 
     THz_to_nm = 299792  # 1 THz in nm
-    lambda_min = THz_to_nm/freq_max
-    lambda_max = THz_to_nm/freq_min
+    lambda_min = THz_to_nm / freq_max
+    lambda_max = THz_to_nm / freq_min
 
     on_off = {'off': 0, 'on': 1}
     yes_no = {'no': 0, 'yes': 1}
@@ -97,7 +96,7 @@ class CoBriteDX1(MessageBasedDriver):
         value = self.query(':SOUR:WAV {}, {:.4f}'.format(channel, lambd))
         while not self.operation_complete:
             sleep(delay)
-        #self.read()
+        # self.read()
         return value
 
     @DictFeat(keys=channels, limits=(lambda_min, lambda_max))
@@ -337,6 +336,7 @@ class CoBriteDX1(MessageBasedDriver):
             ret_vals.append(float(val))
         return ret_vals
 
+
 if __name__ == '__main__':
     with CoBriteDX1.via_serial(8) as inst:
         inst.echo = 'off'
@@ -369,8 +369,8 @@ if __name__ == '__main__':
             print('All limits: {}'.format(inst.limits[chan]))
 
             print('== Laser Control Demo ==')
-            #print('Saving current state...')
-            #inst.save_curr_state(channel=chan)
+            # print('Saving current state...')
+            # inst.save_curr_state(channel=chan)
 
             inst.frequency[chan] = 195.3
             print('Configuration: {}'.format(inst.configuration[chan]))

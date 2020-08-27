@@ -1,10 +1,4 @@
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat, DictFeat, Action
-
-# from lantz import Q_
-
-import socket
-import warnings
+from lantz.core import Feat, MessageBasedDriver
 
 
 class Ag33220A(MessageBasedDriver):

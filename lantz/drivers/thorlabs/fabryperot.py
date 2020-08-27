@@ -8,12 +8,11 @@
     Date: 4/17/2019
 """
 
-from lantz.drivers.ni.daqmx import AnalogInputTask, VoltageInputChannel, DigitalOutputTask, DigitalOutputChannel
-from lantz.drivers.ni.daqmx.utils import DigitalSwitch
-from lantz.driver import Feat, DictFeat, Action
-from lantz import Driver
-from lantz import Q_
 import numpy as np
+from lantz.core import Action, Driver, Feat, Q_
+
+from lantz.drivers.ni.daqmx import AnalogInputTask, DigitalOutputChannel, DigitalOutputTask, VoltageInputChannel
+
 
 def peakdet(arr, delta=0.1):
     mintab, maxtab = list(), list()
@@ -45,6 +44,7 @@ def peakdet(arr, delta=0.1):
                 mxpos = x[idx]
                 lookformax = True
     return np.array(maxtab), np.array(mintab)
+
 
 class FabryPerot(Driver):
 
@@ -103,7 +103,7 @@ class FabryPerot(Driver):
         self.sw_task.clear()
         self.acq_task.clear()
 
-    @Feat(values={True:True, False:False})
+    @Feat(values={True: True, False: False})
     def active_mode(self):
         return self._sw_state
 
@@ -113,7 +113,7 @@ class FabryPerot(Driver):
         self.sw_task.write(state_pts)
         self._sw_state = state
 
-        #Switch trigger channel
+        # Switch trigger channel
         self._trig_ch = self.active_trig_ch if state else self.passive_trig_ch
         self.setup_task()
         return
@@ -138,6 +138,7 @@ class FabryPerot(Driver):
     @Feat()
     def points(self):
         return self._points
+
     @points.setter
     def points(self, val):
         self._points = val
@@ -172,37 +173,37 @@ class FabryPerot(Driver):
         # normalize signal
         data /= np.max(data)
 
-        #Peak Detection
+        # Peak Detection
         peak_info, valley_info = peakdet(data, delta=self._selectivity)
         if not peak_info.size:
             self._single_mode = False
             self._peak_locations = list()
             self._trace = np.zeros(self.points)
             return
-        peak_locations = peak_info[:,0]
-        peak_magnitudes = peak_info[:,1]
+        peak_locations = peak_info[:, 0]
+        peak_magnitudes = peak_info[:, 1]
 
         # normalize peak magnitudes
         peak_magnitudes /= np.max(peak_magnitudes)
 
-        #TODO Are these really necessary
-        xvar=0.1
-        yvar=0.1
+        # TODO Are these really necessary
+        xvar = 0.1
+        yvar = 0.1
 
-        #Filter peaks
+        # Filter peaks
         filtered_locations = list()
         for peak_location in peak_locations:
             if np.sum(np.abs(peak_locations - peak_location) > xvar * len(peak_locations)):
                 filtered_locations.append(peak_location)
 
         # Convert peak location to ms
-        peak_locations = np.array(filtered_locations)*self.period.to('ms').m/self.points
+        peak_locations = np.array(filtered_locations) * self.period.to('ms').m / self.points
 
-        #Cut the begining and end to prevent wrap arounds
-        peak_magnitudes = peak_magnitudes[peak_locations>0.05*self.period.to('ms').m]
-        peak_locations = peak_locations[peak_locations>0.05*self.period.to('ms').m]
-        peak_magnitudes = peak_magnitudes[peak_locations<0.95*self.period.to('ms').m]
-        peak_locations = peak_locations[peak_locations<0.95*self.period.to('ms').m]
+        # Cut the begining and end to prevent wrap arounds
+        peak_magnitudes = peak_magnitudes[peak_locations > 0.05 * self.period.to('ms').m]
+        peak_locations = peak_locations[peak_locations > 0.05 * self.period.to('ms').m]
+        peak_magnitudes = peak_magnitudes[peak_locations < 0.95 * self.period.to('ms').m]
+        peak_locations = peak_locations[peak_locations < 0.95 * self.period.to('ms').m]
 
         self._single_mode = len(peak_locations) < 4 and np.var(peak_magnitudes) < yvar
         self._peak_locations = peak_locations

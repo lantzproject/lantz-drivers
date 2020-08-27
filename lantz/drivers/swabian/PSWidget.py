@@ -7,10 +7,7 @@
     Date: 4/4/2020
 """
 
-from collections import OrderedDict
-from lantz import Action, Feat, DictFeat, Q_
-from lantz.messagebased import MessageBasedDriver
-import numpy as np
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 class Swabian(MessageBasedDriver):

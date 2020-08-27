@@ -13,6 +13,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .innova import Innova300C, ArgonInnova300C, KryptonInnova300C
+from .innova import ArgonInnova300C, Innova300C, KryptonInnova300C
 
 __all__ = ['Innova300C', 'ArgonInnova300C', 'KryptonInnova300C']

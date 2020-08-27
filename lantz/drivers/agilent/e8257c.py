@@ -12,10 +12,7 @@
     
 """
 
-import numpy as np
-import lantz
-from lantz import Action, Feat, DictFeat, ureg
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import Action, Feat, MessageBasedDriver
 
 
 class E8257C(MessageBasedDriver):

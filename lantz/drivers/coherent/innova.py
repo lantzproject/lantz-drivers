@@ -22,16 +22,12 @@
 
 """
 
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+from lantz.core.errors import InvalidCommand
 from pyvisa import constants
-
-from lantz import Feat, DictFeat, Action
-from lantz.errors import InvalidCommand
-
-from lantz import MessageBasedDriver
 
 
 def make_feat(command, **kwargs):
-
     def get(self):
         return self.query('PRINT {}'.format(command))
 
@@ -50,7 +46,6 @@ class Innova300C(MessageBasedDriver):
     """Innova300 C Series.
     """
 
-
     DEFAULTS = {'ASRL': {'write_termination': '\r\n',
                          'read_termination': '\r\n',
                          'baud_rate': 1200,
@@ -58,8 +53,7 @@ class Innova300C(MessageBasedDriver):
                          'parity': constants.Parity.none,
                          'stop_bits': constants.StopBits.one,
                          'encoding': 'ascii',
-                        }}
-
+                         }}
 
     def initialize(self):
         super().initialize()
@@ -82,7 +76,6 @@ class Innova300C(MessageBasedDriver):
             raise Exception('Laser must be off')
 
         return ans
-
 
     # General information and communication
 
@@ -113,8 +106,7 @@ class Innova300C(MessageBasedDriver):
         """RS-232/422 baud rate, the serial connection will be reset after.
         """
         self.query('BAUDRATE={}'.format(value))
-        #TODO: RESET Connection
-
+        # TODO: RESET Connection
 
     # Interface
 
@@ -127,7 +119,7 @@ class Innova300C(MessageBasedDriver):
                                values={True: 1, False: 0})
 
     current_range = make_feat('CURRENT RANGE',
-                              doc='Current corresponding to 5 Volts at the input'\
+                              doc='Current corresponding to 5 Volts at the input' \
                                   ' or output lines of the Analog Interface.',
                               units='A',
                               limits=(10, 100, 1))
@@ -140,7 +132,7 @@ class Innova300C(MessageBasedDriver):
     output_pin_high = make_feat('STATUS',
                                 doc='State of the output pin 24 and 25 of the Analog Interface.',
                                 values={(False, False): 0, (True, False): 1,
-                                     (False, True): 2, (True, True): 3})
+                                        (False, True): 2, (True, True): 3})
 
     # Diagnostics
 
@@ -162,7 +154,7 @@ class Innova300C(MessageBasedDriver):
 
     remaining_time = make_feat('HRSTILSHUTDOWN',
                                readonly=True,
-                               doc='Number of hours remaining before the laser '\
+                               doc='Number of hours remaining before the laser ' \
                                    'will shut down automatically.',
                                units='hour')
 
@@ -187,7 +179,6 @@ class Innova300C(MessageBasedDriver):
         """
         return self.query('LASER') == '1'
 
-
     tube_time = make_feat('HOURS',
                           readonly=True,
                           doc='Number of operating hours on the plasma tube.',
@@ -211,13 +202,12 @@ class Innova300C(MessageBasedDriver):
     water_temperature = make_feat('WATER TEMPERATURE',
                                   doc='Temperature of the incoming water to the power supply.')
 
-
     # Other
 
     autofill_mode = make_feat('AUTOFILL',
                               doc='Autofill mode.',
                               values={'disabled': 0, 'enabled': 1,
-                                   'enabled until next autofill': 2})
+                                      'enabled until next autofill': 2})
 
     laser_enabled = make_feat('LASER',
                               doc='Energize the power supply.',
@@ -232,9 +222,9 @@ class Innova300C(MessageBasedDriver):
                                readonly=True,
                                doc='Laser operating mode.',
                                values={'current regulation': 0,
-                                    'reduced bandwidth light regulation': 1,
-                                    'standard light regulation': 2,
-                                    'current regulation, light regulation out of range': 3})
+                                       'reduced bandwidth light regulation': 1,
+                                       'standard light regulation': 2,
+                                       'current regulation, light regulation out of range': 3})
 
     # Etalon
 
@@ -257,7 +247,6 @@ class Innova300C(MessageBasedDriver):
     def etalon_temperature_setpoint(self, value):
         self.query('ETALON={}'.format(value))
 
-
     # Magnetic field
 
     magnetic_field_high = make_feat('FIELD',
@@ -273,7 +262,6 @@ class Innova300C(MessageBasedDriver):
     @magnetic_field_setpoint_high.setter
     def magnetic_field_setpoint_high(self, value):
         self.query('FIELD={}'.format(value))
-
 
     # Light and current regulation
 
@@ -319,7 +307,6 @@ class Innova300C(MessageBasedDriver):
     def current_setpoint(self, value):
         self.query('CURRENT={}'.format(value))
 
-
     power = make_feat('LIGHT 3',
                       readonly=True,
                       doc='Current power output.',
@@ -335,16 +322,15 @@ class Innova300C(MessageBasedDriver):
     def power_setpoint(self, value):
         self.query('LIGHT={}'.format(value))
 
-
     auto_light_cal_enabled = make_feat('AUTOLTCAL',
                                        doc='Automatic light regulation calibration flag.',
                                        values={True: 1, False: 0})
 
     current_change_limit = make_feat('PCTCHGTILRECAL',
-                                     doc='Percent tube change before an automatic '\
-                                         'light regulation recalibration becomes '\
+                                     doc='Percent tube change before an automatic ' \
+                                         'light regulation recalibration becomes ' \
                                          'necessary.',
-                                     units='', #TODO: %
+                                     units='',  # TODO: %
                                      limits=(5, 100, 1))
 
 
@@ -355,7 +341,7 @@ class ArgonInnova300C(Innova300C):
     wavelength = make_feat('WAVELENGTH',
                            doc='Wavelength for the internal power meter calibration',
                            values={351, 364, 454, 457, 465, 472, 476, 488, 496, 501,
-                                 514, 528, 1090, 'MLVS', 'MLUV', 'MLDUV'})
+                                   514, 528, 1090, 'MLVS', 'MLUV', 'MLDUV'})
 
 
 class KryptonInnova300C(Innova300C):
@@ -364,7 +350,8 @@ class KryptonInnova300C(Innova300C):
     wavelength = make_feat('WAVELENGTH',
                            doc='Wavelength for the internal power meter calibration',
                            values={476, 482, 520, 530, 568, 647, 676, 752, 'MLVS',
-                                 'MLUV', 'MLVI', 'MLBG', 'MLRD', 'MLIR'})
+                                   'MLUV', 'MLVI', 'MLBG', 'MLRD', 'MLIR'})
+
 
 if __name__ == '__main__':
     import argparse
@@ -381,6 +368,7 @@ if __name__ == '__main__':
     with Innova300C.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             print(inst.idn)

@@ -1,8 +1,7 @@
-from lantz import Feat, DictFeat, Action
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+
 
 class BK9129b(MessageBasedDriver):
-
     DEFAULTS = {
         'ASRL': {
             'write_termination': '\n',
@@ -11,7 +10,7 @@ class BK9129b(MessageBasedDriver):
         }
     }
 
-    CHANNELS = {1:1, 2:2, 3:3}
+    CHANNELS = {1: 1, 2: 2, 3: 3}
 
     @Feat()
     def idn(self):
@@ -44,25 +43,25 @@ class BK9129b(MessageBasedDriver):
     @DictFeat(units='V', keys=CHANNELS)
     def voltage(self, ch):
         vals = self.query('APP:VOLT?').split(',')
-        return float(vals[ch-1])
+        return float(vals[ch - 1])
 
     @voltage.setter
     def voltage(self, ch, value):
         vals = self.query('APP:VOLT?').split(',')
         vals = list(map(float, vals))
-        vals[ch-1] = value
+        vals[ch - 1] = value
         self.write('APP:VOLT {:.6f},{:.6f},{:.6f}'.format(*vals))
 
     @DictFeat(units='A', keys=CHANNELS)
     def current(self, ch):
         vals = self.query('APP:CURR?').split(',')
-        return float(vals[ch-1])
+        return float(vals[ch - 1])
 
     @current.setter
     def current(self, ch, value):
         vals = self.query('APP:CURR?').split(',')
         vals = list(map(float, vals))
-        vals[ch-1] = value
+        vals[ch - 1] = value
         self.write('APP:CURR {:.6f},{:.6f},{:.6f}'.format(*vals))
 
     @DictFeat(values={False: '0', True: '1'}, keys=CHANNELS)
@@ -99,11 +98,11 @@ class BK9129b(MessageBasedDriver):
     def state(self, value):
         self.write('CHAN:OUTP {:d}'.format(value))
 
+
 def main():
     import logging
     import sys
     from lantz.log import log_to_screen
-    import numpy as np
     log_to_screen(logging.CRITICAL)
     res_name = sys.argv[1]
     with BK9129b(res_name) as inst:

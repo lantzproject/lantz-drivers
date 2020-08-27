@@ -14,7 +14,8 @@
 
 """
 
+from .axis import BacklashMixing, MotionAxisMultiple, MotionAxisSingle
 from .motioncontroller import MotionControllerMultiAxis, MotionControllerSingleAxis
-from .axis import MotionAxisSingle, MotionAxisMultiple, BacklashMixing
 
-__all__ = ['MotionControllerMultiAxis', 'MotionControllerSingleAxis', 'MotionAxisSingle',  'MotionAxisMultiple', 'BacklashMixing']
+__all__ = ['MotionControllerMultiAxis', 'MotionControllerSingleAxis', 'MotionAxisSingle', 'MotionAxisMultiple',
+           'BacklashMixing']

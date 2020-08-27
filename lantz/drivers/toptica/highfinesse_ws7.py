@@ -1,15 +1,11 @@
-from lantz.foreign import LibraryDriver
-from lantz import Feat, DictFeat, Action, Q_
-
 import time
-from ctypes import c_uint, c_void_p, c_double, c_long, pointer, POINTER
 
-import numpy as np
-
-from lantz.drivers.toptica.ws7Const import *
-from lantz.drivers.toptica.ws7LoadDll import LoadDLL
+from lantz.core import DictFeat, Q_
+from lantz.core.foreign import LibraryDriver
 
 from lantz.drivers import Wavemeter
+from lantz.drivers.toptica.ws7Const import *
+from lantz.drivers.toptica.ws7LoadDll import LoadDLL
 
 
 class WS7(LibraryDriver, Wavemeter):

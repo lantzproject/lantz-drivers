@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-from lantz.driver import Driver
+from lantz.core import Driver, Feat, Q_
+
 from lantz.drivers.swabian.pulsestreamer.lib.pulse_streamer_grpc import PulseStreamer
-from lantz import Q_
+
 from spyre.widgets.rangespace import RangeDict
-from lantz import Action, Feat, DictFeat, ureg
 
 
 class Pulses(Driver):

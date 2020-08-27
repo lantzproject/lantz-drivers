@@ -1,12 +1,11 @@
-import numpy as np
+import os
 from time import sleep
 
-
-import sys
-import os
+import numpy as np
 
 try:
     import clr
+
     # Import DLLs for running spectrometer via LightField
     lf_root = os.environ['LIGHTFIELD_ROOT']
     automation_path = lf_root + '\PrincetonInstruments.LightField.AutomationV4.dll'
@@ -29,8 +28,7 @@ except:
     pass
 
 # Lantz imports
-from lantz import Driver, Feat, DictFeat, Action
-
+from lantz import Driver, Feat, Action
 
 
 class LightFieldM:
@@ -129,14 +127,14 @@ class LightFieldM:
         """
 
         acquisition_time = self.get(lf.AddIns.CameraSettings.ShutterTimingExposureTime)
-        num_frames =  self.get(lf.AddIns.ExperimentSettings.FrameSettingsFramesToStore)
+        num_frames = self.get(lf.AddIns.ExperimentSettings.FrameSettingsFramesToStore)
 
         self.experiment.Acquire()
 
-        sleep(0.001 * acquisition_time * num_frames) # waits exposure duration
+        sleep(0.001 * acquisition_time * num_frames)  # waits exposure duration
 
         while self.experiment.IsRunning:
-            sleep(0.1) # waits for experiment to finish
+            sleep(0.1)  # waits for experiment to finish
 
         last_file = self.application.FileManager.GetRecentlyAcquiredFileNames().GetItem(0)
 
@@ -147,26 +145,25 @@ class LightFieldM:
             if image_set.Frames == 1:
 
                 frame = image_set.GetFrame(0, 0)
-                data = np.reshape(np.fromiter(frame.GetData(),'uint16'), [frame.Width, frame.Height], order='F')
+                data = np.reshape(np.fromiter(frame.GetData(), 'uint16'), [frame.Width, frame.Height], order='F')
 
             else:
                 data = np.array([])
                 for i in range(0, image_set.Frames):
-
                     frame = image_set.GetFrame(0, i)
                     new_frame = np.fromiter(frame.GetData(), 'uint16')
 
-                    new_frame = np.reshape(np.fromiter(frame.GetData(), 'uint16'), [frame.Width, frame.Height], order='F')
+                    new_frame = np.reshape(np.fromiter(frame.GetData(), 'uint16'), [frame.Width, frame.Height],
+                                           order='F')
                     data = np.dstack((data, new_frame)) if data.size else new_frame
-
 
             return data
 
 
         else:
-        # not sure when this situation actually arises, but I think multiple
-        # regions of interest have to be set.
-        #     data = cell(imageset.Regions.Length, 1)
+            # not sure when this situation actually arises, but I think multiple
+            # regions of interest have to be set.
+            #     data = cell(imageset.Regions.Length, 1)
             print('image_set.Regions not 1! this needs to be figured out!')
             print(image_set.Frames)
         #     for j in range(0, image_set.Regions.Length - 1):
@@ -195,8 +192,8 @@ class LightFieldM:
 
 
 class Spectrometer(Driver):
-
-    GRATINGS = ['[500nm,600][0][0]','[1.2um,300][1][0]','[500nm,150][2][0]']# TODO: make it pull gratings from SW directly
+    GRATINGS = ['[500nm,600][0][0]', '[1.2um,300][1][0]',
+                '[500nm,150][2][0]']  # TODO: make it pull gratings from SW directly
 
     def initialize(self):
         """
@@ -227,7 +224,6 @@ class Spectrometer(Driver):
         result = np.empty(size)
 
         for _ in range(size):
-
             result[_] = self.lfm.experiment.SystemColumnCalibration[_]
 
         return result
@@ -270,8 +266,7 @@ class Spectrometer(Driver):
             import re
 
             for g in GRATINGS:
-
-                match = re.search(r"\[(\d+\.?\d+[nu]m),(\d+)\]\[(\d+)\]\[(\d+)\])",g)
+                match = re.search(r"\[(\d+\.?\d+[nu]m),(\d+)\]\[(\d+)\]\[(\d+)\])", g)
                 blaze, g_per_mm, slot, turret = match.groups()
 
         return GRATINGS
@@ -325,7 +320,6 @@ class Spectrometer(Driver):
         """
         return self.lfm.set(lf.AddIns.CameraSettings.SensorTemperatureSetPoint, deg_C)
 
-
     @Action()
     def acquire_frame(self):
         """
@@ -369,13 +363,13 @@ class Spectrometer(Driver):
         wavelength = np.linspace(lambda_min, lambda_max, data.shape[0])
 
         print('Wavelength data is not strictly correct, this just interpolates.')
-        print('TODO: figure out how step and glue determines which wavelengths are used. This might be done in post processing.')
+        print(
+            'TODO: figure out how step and glue determines which wavelengths are used. This might be done in post processing.')
         print('If you want the true values, use the actual .spe file that is generated.')
 
         self.lfm.set(lf.AddIns.ExperimentSettings.StepAndGlueEnabled, False)
 
         return data, wavelength
-
 
     @Action()
     def acquire_background(self):
@@ -388,7 +382,6 @@ class Spectrometer(Driver):
 
 
 def lantz_test():
-
     s = Spectrometer()
     s.initialize()
 
@@ -410,7 +403,6 @@ def lantz_test():
     s.sensor_setpoint = -70.0
     print('Sensor temperature setpoint: {} C'.format(s.sensor_setpoint))
 
-
     print('Sensor temperature: {} C'.format(s.sensor_temperature))
 
     print('Grating: {}'.format(s.grating))
@@ -420,7 +412,6 @@ def lantz_test():
     print('Center wavelength:{}'.format(s.center_wavelength))
     s.center_wavelength = 730.0
     print('Center wavelength:{}'.format(s.center_wavelength))
-
 
     print('Acquring single frame')
     s.num_frames = 1
@@ -432,7 +423,6 @@ def lantz_test():
     data, wavelength = s.acquire_frame()
     print(data.shape)
 
-
     data, wavelength = s.acquire_step_and_glue([500.0, 950.0])
 
     print(data.shape, wavelength.shape)
@@ -441,8 +431,7 @@ def lantz_test():
 
 
 def test():
-
-    #import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
     lfm = LightFieldM(True)
     lfm.load_experiment('SpyreAutomation')
@@ -459,18 +448,18 @@ def test():
     lfm.set_exposure(1.5)
     print(lfm.get(lf.AddIns.CameraSettings.ShutterTimingExposureTime))
 
-
-    #data = lfm.acquire()
-    #print(data)
-    #plt.plot(data)
-    #plt.show()
+    # data = lfm.acquire()
+    # print(data)
+    # plt.plot(data)
+    # plt.show()
 
     lfm.set_frames(10)
-    #data = lfm.acquire()
-    #print(data)
-    #plt.plot(data)
-    #plt.show()
+    # data = lfm.acquire()
+    # print(data)
+    # plt.plot(data)
+    # plt.show()
+
 
 if __name__ == "__main__":
-    #test()
+    # test()
     lantz_test()

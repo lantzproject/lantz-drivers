@@ -9,14 +9,10 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat
-
-from lantz import MessageBasedDriver
-
+from lantz.core import Feat, MessageBasedDriver
 
 
 class AFG3021b(MessageBasedDriver):
-
     MANUFACTURER_ID = '0x0699'
     MODEL_CODE = '0x0346'
 

@@ -14,15 +14,12 @@
 
 """
 
-
-import numpy as np
-import lantz
-from lantz import Action, Feat, DictFeat, ureg
 from collections import OrderedDict
-from lantz.messagebased import MessageBasedDriver
+
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+
 
 class DG1022(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\n',
@@ -31,7 +28,7 @@ class DG1022(MessageBasedDriver):
     }
 
     CHANNELS = OrderedDict([(1, 1),
-                           (2,2)])
+                            (2, 2)])
 
     TOGGLE = OrderedDict([('on', 'ON'),
                           ('off', 'OFF')])
@@ -58,26 +55,26 @@ class DG1022(MessageBasedDriver):
     @Feat()
     def error(self):
         msg = self.query("SYST:ERR?")
-        return msg.split(',') #error code, error message
+        return msg.split(',')  # error code, error message
 
-    @DictFeat(keys = CHANNELS, units="Hz", limits=(1e-6, 25e6))
-    def frequency(self,channel):
+    @DictFeat(keys=CHANNELS, units="Hz", limits=(1e-6, 25e6))
+    def frequency(self, channel):
         """
         Returns the frequency of the specified channel, in Hertz.
         """
         return float(self.query('SOUR{}:FREQ?'.format(channel)))
 
     @frequency.setter
-    def frequency(self,channel,value):
+    def frequency(self, channel, value):
         """
         Sets the frequency of the specified channel, to value. Note that this
         is not smart enough to keep track of the different bandwidth constraints
         on different types of waveforms, so see the manual accordingly.
         """
-        return self.write('SOUR{}:FREQ {:1.6f}'.format(channel,value))
+        return self.write('SOUR{}:FREQ {:1.6f}'.format(channel, value))
 
     @DictFeat(keys=CHANNELS, values=WAVEFORMS)
-    def function(self,channel):
+    def function(self, channel):
         """
         Returns the function of the specified channel from the options
         enumerated in WAVEFORMS.
@@ -86,57 +83,57 @@ class DG1022(MessageBasedDriver):
         return result.split(',')[0]
 
     @function.setter
-    def function(self,channel,value):
+    def function(self, channel, value):
         """
         Returns the function of the specified channel to value (specified in
         WAVEFORMS).
         """
         return self.write('SOUR{}:APPL:{}'.format(channel, value))
 
-    @DictFeat(keys = CHANNELS, values = TOGGLE)
-    def output(self,channel):
+    @DictFeat(keys=CHANNELS, values=TOGGLE)
+    def output(self, channel):
         """
         Reads the output state of the specified channel.
         """
         return self.query('OUTP{}?'.format(channel))
 
     @output.setter
-    def output(self,channel,val):
+    def output(self, channel, val):
         """
         Sets the output state of the specified channel to val.
         """
-        return self.write('OUTP{} {}'.format(channel,val))
+        return self.write('OUTP{} {}'.format(channel, val))
 
-    @DictFeat(keys=CHANNELS, units="V", limits=(-10.,10.))
-    def voltage_low(self,channel):
+    @DictFeat(keys=CHANNELS, units="V", limits=(-10., 10.))
+    def voltage_low(self, channel):
         """
         Queries the low voltage level for the specified channel.
         """
         return float(self.query("SOUR{}:VOLT:LOW?".format(channel)))
 
     @voltage_low.setter
-    def voltage_low(self,channel,value):
+    def voltage_low(self, channel, value):
         """
         Sets the high voltage level for the specified channel.
         """
         return self.write("SOUR{}:VOLT:LOW {:1.6f}".format(channel, value))
 
-    @DictFeat(keys=CHANNELS, units="V", limits=(-10.,10.))
-    def voltage_high(self,channel):
+    @DictFeat(keys=CHANNELS, units="V", limits=(-10., 10.))
+    def voltage_high(self, channel):
         """
         Queries the high voltage level for the specified channel.
         """
         return float(self.query("SOUR{}:VOLT:HIGH?".format(channel)))
 
     @voltage_high.setter
-    def voltage_high(self,channel,value):
+    def voltage_high(self, channel, value):
         """
         Sets the high voltage level for the specified channel.
         """
         return self.write("SOUR{}:VOLT:HIGH {:1.6f}".format(channel, value))
 
-    @DictFeat(keys = CHANNELS, units = "V", limits=(0., 20.))
-    def voltage_amplitude(self,channel):
+    @DictFeat(keys=CHANNELS, units="V", limits=(0., 20.))
+    def voltage_amplitude(self, channel):
         """
         Queries the peak-to-peak voltage amplitude of the specified output
         channel.
@@ -144,11 +141,11 @@ class DG1022(MessageBasedDriver):
         return float(self.query("SOUR{}:VOLT?".format(channel)))
 
     @voltage_amplitude.setter
-    def voltage_amplitude(self,channel,value):
+    def voltage_amplitude(self, channel, value):
         """
         Sets the peak-to-peak voltage amplitude of the specified output channel.
         """
-        return self.write("SOUR{}:VOLT {:1.6f}".format(channel,value))
+        return self.write("SOUR{}:VOLT {:1.6f}".format(channel, value))
 
     @DictFeat(keys=CHANNELS, units="V", limits=(-10., 10.))
     def voltage_offset(self, channel):
@@ -166,7 +163,6 @@ class DG1022(MessageBasedDriver):
 
 
 if __name__ == '__main__':
-
 
     # note: if you don't see your device, it may not work over USB 3.0?
     addr = 'USB0::0x1AB1::0x0642::DG1ZA192902819::INSTR'
@@ -187,7 +183,6 @@ if __name__ == '__main__':
 
     # code to check various parameters from supported channels
     for channel in inst.CHANNELS.keys():
-
         inst.frequency[channel] = 1e-6
         print('Channel {} frequency: {}'.format(channel, inst.frequency[channel]))
         inst.frequency[channel] = 20e6
