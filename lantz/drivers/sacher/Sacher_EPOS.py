@@ -1,6 +1,9 @@
 # sacher_epos.py, python wrapper for sacher epos motor
 # David Christle <christle@uchicago.edu>, August 2014
 #
+"""
+Possbily Maxon EPOS now
+"""
 
 """
 This is the actual version that works

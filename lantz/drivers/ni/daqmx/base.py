@@ -571,7 +571,7 @@ class Task(_Base):
     def alter_state(self, new_state):
         """Alters the state of a task according to the action you
         specify. To minimize the time required to start a task, for
-        example, DAQmxTaskControl can commit the task prior to
+        example, DAQmxTaskControl can commit the task prior_scientific to
         starting.
 
         :param new_state:

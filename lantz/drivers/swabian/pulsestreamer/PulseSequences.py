@@ -383,7 +383,7 @@ class Pulses(Driver):
     def Ramsey(self, params, pi):
         '''
         :param params: the iteration array
-        :param pi: length of the pi pulse
+        :param pi: length of the physik_instrumente pulse
         :return: an array of pulse sequences
         '''
         longest_time = int(round(params["stop"].to("ns").magnitude))
@@ -413,7 +413,7 @@ class Pulses(Driver):
     def Resetting_Ramsey(self, params, pi):
         '''
         :param params: the iteration array
-        :param pi: length of the pi pulse
+        :param pi: length of the physik_instrumente pulse
         :return: an array of pulse sequences
         '''
         longest_time = int(round(params["stop"].to("ns").magnitude))
@@ -449,7 +449,7 @@ class Pulses(Driver):
     def Resetting_L_Ramsey(self, params, pi):
         '''
         :param params: the iteration array
-        :param pi: length of the pi pulse
+        :param pi: length of the physik_instrumente pulse
         :return: an array of pulse sequences
         '''
         longest_time = int(round(params["stop"].to("ns").magnitude))
