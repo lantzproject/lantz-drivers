@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.aeroflex
+    lantz.drivers.cobham
     ~~~~~~~~~~~~~~~~~~~~~~
 
-    :company: Aeroflex
+    :company: Cobham Advanced Electronic Solutions (formerly Aeroflex)
     :description: Test and measurement equipment and microelectronic solutions.
     :website: http://www.aeroflex.com/
 

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.aa
+    lantz.drivers.aa_opto_electronic
     ~~~~~~~~~~~~~~~~
 
     :company: AA Opto Electronic.
     :description: Radio frequency and acousto-optic devices, Laser based sub-systems.
-    :website: http://opto.braggcell.com/
+    :website: http://www.aaoptoelectronic.com
 
     ----
 

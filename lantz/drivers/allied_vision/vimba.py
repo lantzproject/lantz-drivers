@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.alliedvision
+    lantz.drivers.allied_vision
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Implementation for a alliedvision camera via pymba and pylon
+    Implementation for a allied_vision camera via pymba and pylon
 
     Requires:
     - pymba: https://github.com/morefigs/pymba
@@ -99,7 +99,7 @@ class VimbaCam(Driver):
 
         Example:
         import lantz
-        from lantz.drivers.alliedvision import Cam
+        from lantz.drivers.allied_vision import Cam
         import time
         try:
                 lantzlog

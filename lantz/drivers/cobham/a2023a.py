@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.aeroflex.a2023a
+    lantz.drivers.cobham.a2023a
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements the drivers for an signal generator.

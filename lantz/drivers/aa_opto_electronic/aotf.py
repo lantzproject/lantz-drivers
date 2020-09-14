@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.aa.aotf
+    lantz.drivers.aa_opto_electronic.aotf
     ~~~~~~~~~~~~~~~~~~~~~
 
     Implements the drivers for an AOTF Controller

@@ -3,7 +3,7 @@
     lantz.drivers.andor
     ~~~~~~~~~~~~~~~~~~~
 
-    :company: Andor
+    :company: Andor (part of Oxford Instruments)
     :description: Scientific cameras.
     :website: http://www.andor.com/
 
