@@ -27,10 +27,8 @@ import threading
 import time
 
 import numpy as np
-from lantz.core import Driver
+from lantz.core import Action, Feat, Driver
 from pymba import Vimba
-
-from lantz import Action, Feat
 
 beginner_controls = ['ExposureTimeAbs', 'GainRaw', 'Width', 'Height',
                      'OffsetX', 'OffsetY']
