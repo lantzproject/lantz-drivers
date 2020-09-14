@@ -237,7 +237,7 @@ class Device_Client():
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9999
 
-    from lantz.drivers.stanford.sg396 import SG396
+    from lantz.drivers.stanford_rs.sg396 import SG396
 
     sg = SG396('tcpip::192.168.1.108')
 

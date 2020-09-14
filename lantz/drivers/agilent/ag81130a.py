@@ -1001,7 +1001,7 @@ class Ag81130A(MessageBasedDriver):
         inst.dig_patt_type[(2, 3)] = 'low'
         inst.dig_patt_type[(1, 3)] = 'data'
 
-        # Set up segment 2 RF - initial point is pi pulse w/o separation
+        # Set up segment 2 RF - initial point is physik_instrumente pulse w/o separation
 
         inst.segment_data[(1, 3)] = [np.hstack((pi_pulse, pad))]
 
@@ -1063,7 +1063,7 @@ class Ag81130A(MessageBasedDriver):
         inst.dig_patt_type[(1, 2)] = 'low'
         inst.dig_patt_type[(2, 2)] = 'low'
 
-        # Segment 3 - laser is off, pi/2, tau, pi, -pi/2 pulses
+        # Segment 3 - laser is off, physik_instrumente/2, tau, physik_instrumente, -physik_instrumente/2 pulses
         inst.dig_patt_length[3] = T_hahn_max
         inst.dig_patt_type[(2, 3)] = 'low'
 
