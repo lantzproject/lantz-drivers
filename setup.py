@@ -58,10 +58,7 @@ setup(
         'Topic :: Utilities',
     ],
     keywords='lantz, lantz-drivers, drivers, hardware drivers, hardware interface, instrumentation framework, science, research',
-    packages=[
-        'lantz.drivers',
-        ['lantz.drivers.' + company for company in companies],
-    ],
+    packages=['lantz.drivers'] + ['lantz.drivers.' + company for company in companies],
     zip_safe=False,
     python_requires='>=3.6, <4',
     install_requires=[
