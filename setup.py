@@ -64,7 +64,7 @@ setup(
     install_requires=[
         'pyserial>=3.4',
         'pyusb>=1.1.0',
-        'lantz-core>=0.5',
+        'lantzdev>=0.6',
     ],
     project_urls={
         'Bug Reports': 'https://github.com/lantzproject/lantz-drivers/issues',
