@@ -9,9 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, DictFeat, Action
-from lantz import errors
-from lantz import MessageBasedDriver
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver, errors
 
 
 class LantzVoltmeter(MessageBasedDriver):

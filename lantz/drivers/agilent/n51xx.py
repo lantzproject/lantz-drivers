@@ -1,12 +1,6 @@
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat, DictFeat, Action, ureg
-
 from collections import OrderedDict
 
-#from lantz import Q_
-
-import socket
-import warnings
+from lantz.core import Feat, MessageBasedDriver
 
 
 class N51xx(MessageBasedDriver):
@@ -29,13 +23,12 @@ class N51xx(MessageBasedDriver):
     }
 
     ON_OFF_VALS = OrderedDict([
-                    ('on', 1),
-                    ('off', 0),
+        ('on', 1),
+        ('off', 0),
     ])
 
-    freq_limits = (1e5,6e9)
-    power_limits = (-200,15)
-
+    freq_limits = (1e5, 6e9)
+    power_limits = (-200, 15)
 
     @Feat()
     def idn(self):
@@ -43,7 +36,6 @@ class N51xx(MessageBasedDriver):
         Identifiies the instrument.
         """
         return self.query('*IDN?')
-
 
     @Feat(values=ON_OFF_VALS)
     def rf_toggle(self):
@@ -55,9 +47,9 @@ class N51xx(MessageBasedDriver):
         return value
 
     @rf_toggle.setter
-    def rf_toggle(self,value):
+    def rf_toggle(self, value):
         self.write('OUTP:STAT {}'.format(value))
-        #if value != self.rf_toggle:
+        # if value != self.rf_toggle:
         #    self.write('OUTP:STAT {}'.format(value))
         return
 
@@ -89,10 +81,10 @@ class N51xx(MessageBasedDriver):
         """
         print('Will not set power - IQ modulator in use!')
         return
-        #value = 5.5 # set for using IQ modulator
-        #return self.write('SOUR:POW {}DBM'.format(value))
+        # value = 5.5 # set for using IQ modulator
+        # return self.write('SOUR:POW {}DBM'.format(value))
 
-    @Feat(units='radians',limits=(-3.14,3.14))
+    @Feat(units='radians', limits=(-3.14, 3.14))
     def phase(self):
         """
         Returns RF signal carrier phase in radians
@@ -106,12 +98,12 @@ class N51xx(MessageBasedDriver):
         """
         return self.write('SOUR:PHAS {}RAD'.format(radians))
 
-    @Feat(limits=(-200,30))
+    @Feat(limits=(-200, 30))
     def power_limit(self):
         """
         Returns the user set output limit of the signal generator, in dBm.
         """
-        #print('For some reason, this command doesn\'t seem to work...')
+        # print('For some reason, this command doesn\'t seem to work...')
         return self.write('SOUR:POW:USER:MAX?')
 
     @power_limit.setter
@@ -121,10 +113,6 @@ class N51xx(MessageBasedDriver):
         """
         self.write('SOUR:POW:USER:ENAB 0')
         return self.write('SOUR:POW:USER:MAX {}'.format(max_dBm))
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -154,11 +142,10 @@ if __name__ == '__main__':
         print('Output power: {}dBm'.format(inst.power))
 
         print('Phase:{}'.format(inst.phase))
-        inst.phase = 3.14159/2.0
+        inst.phase = 3.14159 / 2.0
         print('Phase:{}'.format(inst.phase))
         inst.phase = 0.0
         print('Phase:{}'.format(inst.phase))
-
 
         inst.rf_toggle = 1
         print('RF on?:{}'.format(inst.rf_toggle))

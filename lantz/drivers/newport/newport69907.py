@@ -1,6 +1,6 @@
-from lantz import Feat, Action
-from lantz.messagebased import MessageBasedDriver
 from time import sleep
+
+from lantz.core import Action, Feat, MessageBasedDriver
 from pyvisa import constants
 
 
@@ -105,7 +105,7 @@ class Newport69907(MessageBasedDriver):
             errors.append('Request control')
             err_code -= 2
         # if err_code == 1:
-            # no error
+        # no error
         return errors
 
     @Feat()

@@ -1,14 +1,10 @@
-from lantz import Feat, DictFeat, Action
-from lantz.errors import InstrumentError
-from lantz.messagebased import MessageBasedDriver
-
-from pint import UnitRegistry
-
 from time import sleep
 
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+from pint import UnitRegistry
+
+
 class CLD101XLP(MessageBasedDriver):
-
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\n',
@@ -54,10 +50,9 @@ class CLD101XLP(MessageBasedDriver):
     def read_error_queue(self):
         no_error = "+0,'No error'"
         error = inst.query('SYST:ERR:NEXT?')
-        while(error != no_error):
+        while (error != no_error):
             print(error)
             error = inst.query('SYST:ERR:NEXT?')
-
 
     @Feat(values={False: '0', True: '1'})
     def ld_state(self):
@@ -67,7 +62,7 @@ class CLD101XLP(MessageBasedDriver):
     def ld_state(self, value):
         self.write('OUTP1:STAT {}'.format(value))
 
-    @Feat(units='A', limits=(0,0.9))
+    @Feat(units='A', limits=(0, 0.9))
     def ld_current_setpoint(self):
         return float(self.query('SOUR:CURR?'))
 
@@ -97,14 +92,13 @@ class CLD101XLP(MessageBasedDriver):
     def tec_state(self, value):
         self.write('OUTP2:STAT {}'.format(value))
 
-
     @Action()
-    def turn_on_seq(self, temp_error=0.05, current_error=0.005*ureg.milliamp):
+    def turn_on_seq(self, temp_error=0.05, current_error=0.005 * ureg.milliamp):
         if self.ld_state == 1:
             print("Laser is already ON!")
             return
 
-        #Turn ON sequence:
+        # Turn ON sequence:
         #   1. TEC ON
         #   2. Wait for temperature == set_temperature
         #   3. LD ON
@@ -115,19 +109,18 @@ class CLD101XLP(MessageBasedDriver):
 
         # 2. Wait
         setpoint = self.temperature_setpoint
-        while(abs(setpoint-self.temperature)>temp_error):pass
-
+        while (abs(setpoint - self.temperature) > temp_error): pass
 
         # 3. LD ON
         self.ld_state = 1
 
         # 4. Wait
         setpoint = self.ld_current_setpoint
-        while(abs(setpoint.m-self.ld_current.m)>current_error.m):pass
+        while (abs(setpoint.m - self.ld_current.m) > current_error.m): pass
 
     @Action()
-    def turn_off_seq(self, current_error=0.005*ureg.milliamp):
-        #Turn OFF sequence:
+    def turn_off_seq(self, current_error=0.005 * ureg.milliamp):
+        # Turn OFF sequence:
         #   1. LD OFF
         #   2. Wait for current == 0
         #   3. TEC OFF
@@ -136,19 +129,18 @@ class CLD101XLP(MessageBasedDriver):
         self.ld_state = 0
 
         # 2. Wait
-        while(abs(self.ld_current.m) > current_error.m):pass
+        while (abs(self.ld_current.m) > current_error.m): pass
 
         # 1. TEC OFF
         self.tec_state = 0
 
 
-
 if __name__ == '__main__':
     import logging
-    import sys
     from lantz.log import log_to_screen
+
     log_to_screen(logging.CRITICAL)
-    #res_name = sys.argv[1]
+    # res_name = sys.argv[1]
 
     res_names = ['USB0::0x1313::0x804F::SERIALNUMBER::INSTR', 'USB0::0x1313::0x804F::SERIALNUMBER::INSTR']
     print('update res_names!')
@@ -157,27 +149,25 @@ if __name__ == '__main__':
     on_time = 20
 
     for resource in res_names:
-
         with CLD101XLP(resource) as inst:
-
-    # with CLD101XLP(res_name) as inst:
+            # with CLD101XLP(res_name) as inst:
             print(fmt_str.format("Temperature unit", inst.temperature_unit))
             print(fmt_str.format("Device name", inst.query('*IDN?')))
             print(fmt_str.format("LD state", inst.ld_state))
             print(fmt_str.format("TEC state", inst.tec_state))
             print(fmt_str.format("Temp setpoint", inst.temperature_setpoint))
-    #     inst.ld_current = .0885
+            #     inst.ld_current = .0885
             print(fmt_str.format("LD current", inst.ld_current))
             print(fmt_str.format("LD current setpoint", inst.ld_current_setpoint))
 
             print(fmt_str.format("LD state", inst.ld_state))
             print(fmt_str.format("TEC state", inst.tec_state))
             print(fmt_str.format("LD temperature", inst.temperature))
-    #
-    #     print("Turning on TEC and LD...")
-    #     inst.turn_on_seq()
-    #     #print(fmt_str.format("LD power (via photodiode)", inst.ld_power['pd']))
-    #     #print(fmt_str.format("LD power (via thermopile)", inst.ld_power['tp']))
+            #
+            #     print("Turning on TEC and LD...")
+            #     inst.turn_on_seq()
+            #     #print(fmt_str.format("LD power (via photodiode)", inst.ld_power['pd']))
+            #     #print(fmt_str.format("LD power (via thermopile)", inst.ld_power['tp']))
             print(fmt_str.format("LD state", inst.ld_state))
             print(fmt_str.format("TEC state", inst.tec_state))
             print(fmt_str.format("LD temperature", inst.temperature))

@@ -7,7 +7,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat
+from lantz.core import Action, Feat
+
 from lantz.drivers.legacy.serial import SerialDriver
 
 
@@ -201,6 +202,7 @@ class Cobolt0601(SerialDriver):
         """
         return self.query('gom?')[1:]
 
+
 if __name__ == '__main__':
     import argparse
     import lantz.log
@@ -216,6 +218,7 @@ if __name__ == '__main__':
     with Cobolt0601(args.port) as inst:
         if args.interactive:
             from lantz.ui.qtwidgets import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here

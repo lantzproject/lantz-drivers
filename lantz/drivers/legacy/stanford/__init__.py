@@ -13,6 +13,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .sr830 import SR830Serial, SR830GPIB
+from .sr830 import SR830GPIB, SR830Serial
 
 __all__ = ['SR830Serial', 'SR830GPIB']

@@ -7,9 +7,10 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat
+from lantz.core import Feat, errors
+
 from lantz.drivers.legacy.serial import SerialDriver
-from lantz import errors
+
 
 class MiniLasEvo(SerialDriver):
     """Driver for any RGB Lasersystems MiniLas Evo laser.
@@ -30,7 +31,6 @@ class MiniLasEvo(SerialDriver):
     DSRDTR = False
     XONXOFF = False
 
-
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         """Send query to the laser and return the answer, after handling
         possible errors.
@@ -44,7 +44,7 @@ class MiniLasEvo(SerialDriver):
         ans = super().query(command, send_args=send_args, recv_args=recv_args)
         # TODO: Echo handling
         code = ans[0]
-        if code !=0:
+        if code != 0:
             if code == '1':
                 raise errors.InstrumentError('Command invalid')
             elif code == '2':
@@ -141,7 +141,7 @@ class MiniLasEvo(SerialDriver):
         return ans
 
     # TEMPERATURE
-    
+
     @Feat()
     def temperature(self):
         """Current temperature in ºC
@@ -161,7 +161,7 @@ class MiniLasEvo(SerialDriver):
         return self.query('LTP?')
 
     # ENABLED REQUEST
-    
+
     @Feat(values={True: '1', False: '0'})
     def enabled(self):
         """Method for turning on the laser
@@ -173,7 +173,7 @@ class MiniLasEvo(SerialDriver):
         self.query('O=' + value)
 
     # LASER POWER
-    
+
     def initialize(self):
         super().initialize()
         self.enabled = True
@@ -196,6 +196,7 @@ class MiniLasEvo(SerialDriver):
     def power(self, value):
         self.query('P={:.1f}'.format(value))
 
+
 if __name__ == '__main__':
     import argparse
     import lantz.log
@@ -211,6 +212,7 @@ if __name__ == '__main__':
     with MiniLasEvo(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             # Add your test code here
@@ -221,7 +223,3 @@ if __name__ == '__main__':
             inst.power = 0
             print(inst.idn)
             """
-
-
-
-

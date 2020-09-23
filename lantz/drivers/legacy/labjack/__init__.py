@@ -19,4 +19,3 @@
 from .u12 import U12
 
 __all__ = ['U12']
-

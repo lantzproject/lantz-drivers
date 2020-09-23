@@ -14,16 +14,13 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import ctypes as ct
-
-from lantz import Driver, Feat, Action
-from lantz import errors
-from lantz.foreign import LibraryDriver
+from lantz.core import Action, errors
+from lantz.core.foreign import LibraryDriver
 
 _ERRORS = {
     0: 'SUCCESS',
     1: 'AT_ERR_NOTINITIALISED',
-    #1: 'AT_HANDLE_SYSTEM', # TODO: Check twice the same key!
+    # 1: 'AT_HANDLE_SYSTEM', # TODO: Check twice the same key!
     2: 'AT_ERR_NOTIMPLEMENTED',
     3: 'AT_ERR_READONLY',
     4: 'AT_ERR_NOTREADABLE',
@@ -64,8 +61,8 @@ _ERRORS = {
     -1: 'AT_HANDLE_UNINITIALISED'
 }
 
-class Andor(LibraryDriver):
 
+class Andor(LibraryDriver):
     LIBRARY_NAME = 'atcore.dll'
 
     def __init__(self, *args, **kwargs):
@@ -214,7 +211,7 @@ class Andor(LibraryDriver):
         """
         command = ct.c_wchar_p(strcommand)
         value = ct.c_bool(value)
-        self.lib.AT_SetEnumerated(self.AT_H, command, value) #TODO: IS THIS CORRECT
+        self.lib.AT_SetEnumerated(self.AT_H, command, value)  # TODO: IS THIS CORRECT
 
     def setenumstring(self, strcommand, item):
         """Set command with EnumeratedString value parameter.
@@ -222,9 +219,10 @@ class Andor(LibraryDriver):
         command = ct.c_wchar_p(strcommand)
         item = ct.c_wchar_p(item)
         self.lib.AT_SetEnumString(self.AT_H, command, item)
-        
+
     def flush(self):
         self.lib.AT_Flush(self.AT_H)
+
 
 if __name__ == '__main__':
     import numpy as np
@@ -238,12 +236,12 @@ if __name__ == '__main__':
         height = andor.getint("SensorHeight")
         length = width * height
 
-        #andor.setenumerated("FanSpeed", 2)
+        # andor.setenumerated("FanSpeed", 2)
         andor.getfloat("SensorTemperature")
         andor.setfloat("ExposureTime", 0.001)
         andor.setenumstring("PixelReadoutRate", "100 MHz")
         andor.setenumstring("PixelEncoding", "Mono32")
-        #andor.setenumstring("PixelEncoding", "Mono16")
+        # andor.setenumstring("PixelEncoding", "Mono16")
 
         imagesizebytes = andor.getint("ImageSizeBytes")
 
@@ -259,11 +257,10 @@ if __name__ == '__main__':
         andor.flush()
 
         image = np.fromstring(userbuffer, dtype=np.uint32, count=length)
-        #image = np.fromstring(userbuffer, dtype=np.uint16, count=length)
+        # image = np.fromstring(userbuffer, dtype=np.uint16, count=length)
         image.shape = (height, width)
 
-        im = plt.imshow(image, cmap = 'gray')
+        im = plt.imshow(image, cmap='gray')
         plt.show()
 
         print(image.min(), image.max(), image.mean())
-

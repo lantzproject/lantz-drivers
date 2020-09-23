@@ -10,15 +10,13 @@
 
 """
 
-from lantz import Action, Feat, DictFeat
-from lantz.messagebased import MessageBasedDriver
-
-from pyvisa.constants import Parity, StopBits
-
 import time
 
-class Agilis(MessageBasedDriver):
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+from pyvisa.constants import Parity, StopBits
 
+
+class Agilis(MessageBasedDriver):
     comm_delay = 0.2
 
     DEFAULTS = {
@@ -48,7 +46,7 @@ class Agilis(MessageBasedDriver):
         self.write('RS')
         return
 
-    #@Feat(values={1, 2, 3, 4})
+    # @Feat(values={1, 2, 3, 4})
     @Feat()
     def channel(self):
         retval = self.query('CC?')
@@ -101,7 +99,6 @@ class Agilis(MessageBasedDriver):
         val2 = self.query('{}SU+?'.format(axis))
         stripped = '{}SU'.format(axis)
         return (val1.lstrip(stripped), val2.lstrip(stripped))
-
 
     @step_amplitude.setter
     def step_amplitude(self, axis, amplitude):
@@ -169,6 +166,7 @@ class Agilis(MessageBasedDriver):
         self.move_to_limit(axis, 3)
         return self.steps[axis]
 
+
 def main():
     import logging
     import sys
@@ -189,6 +187,7 @@ def main():
         inst.channel = 2
         print(inst.calibrate(1))
         print(inst.calibrate(2))
+
 
 if __name__ == '__main__':
     main()

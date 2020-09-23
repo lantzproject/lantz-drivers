@@ -7,21 +7,17 @@
     Authors: Alexandre Bourassa
     Date: 20/04/2016
 """
-import numpy as _np
-
-from lantz import Feat, DictFeat, Action
-from lantz.feat import MISSING
-from lantz.errors import InstrumentError
-from lantz.messagebased import MessageBasedDriver
-
 import ftplib as _ftp
-import re as _re
 import os as _os
+import re as _re
 import time as _t
 
+import numpy as _np
+from lantz.core import Action, Feat, MessageBasedDriver
 
-from lantz.drivers.tektronix.awg5014c_tools import AWG_File_Writer, create_wfm, iee_block_to_array, array_to_ieee_block, Sequence
 import lantz.drivers.tektronix.awg5014c_constants as _cst
+from lantz.drivers.tektronix.awg5014c_tools import AWG_File_Writer, array_to_ieee_block, iee_block_to_array
+
 
 class AWG5014C(MessageBasedDriver):
     """E8364B Network Analyzer
@@ -65,7 +61,7 @@ class AWG5014C(MessageBasedDriver):
 
         cmd += data + term
         self.log_debug('Writing {!r}', cmd)
-        self.resource.write_raw(cmd+data+term)
+        self.resource.write_raw(cmd + data + term)
 
     @Action()
     def create_new_waveform(self, name, size, type='REAL'):
@@ -77,10 +73,10 @@ class AWG5014C(MessageBasedDriver):
     @Action()
     def delete_waveform(self, name):
         """Delete wfm <name>.  If <name>=='ALL', deletes all user defined waveform"""
-        if name == 'ALL': self.write('WLIS:WAV:DEL ALL')
-        else: self.write('WLIS:WAV:DEL "{}"'.format(name))
-
-
+        if name == 'ALL':
+            self.write('WLIS:WAV:DEL ALL')
+        else:
+            self.write('WLIS:WAV:DEL "{}"'.format(name))
 
     # ----------------------------------------------------
     # Hard Drive navigation method
@@ -93,7 +89,7 @@ class AWG5014C(MessageBasedDriver):
 
     @Action()
     def ls(self, verbose=True):
-        #Query the current directory and the content
+        # Query the current directory and the content
         dir = self.query("MMEM:CDIR?").strip('"')
         content = self.query("MMEM:CAT?").split(',"')
         used, avail = map(int, content.pop(0).split(","))
@@ -103,15 +99,17 @@ class AWG5014C(MessageBasedDriver):
         for item in content:
             item = item.strip('"')
             name, isDir, size = item.split(',')
-            if isDir=='DIR': dirs.append(name)
-            else           : files.append((name, size))
+            if isDir == 'DIR':
+                dirs.append(name)
+            else:
+                files.append((name, size))
 
         # Build and print an answer (or return it
         if verbose:
             spaces_size = 30
-            ans =  "{} ({:.2f}% full):\r\n".format(dir, (used / (used + avail)))
-            for d in dirs: ans += '\t|_ '+d+(' '*(spaces_size-len(d)))+'DIR\n'
-            for f in files: ans += '\t|_ '+f[0]+(' '*(spaces_size-len(f[0])))+f[1]+'\n'
+            ans = "{} ({:.2f}% full):\r\n".format(dir, (used / (used + avail)))
+            for d in dirs: ans += '\t|_ ' + d + (' ' * (spaces_size - len(d))) + 'DIR\n'
+            for f in files: ans += '\t|_ ' + f[0] + (' ' * (spaces_size - len(f[0]))) + f[1] + '\n'
             print(ans)
         else:
             return (dir, used, avail), dirs, files
@@ -130,7 +128,7 @@ class AWG5014C(MessageBasedDriver):
     def get_current_drive(self):
         print(self.query(':MMEM:MSIS?'))
 
-    #This might not work
+    # This might not work
     @Action()
     def mv(self, source_file_path, dest_file_path, source_drive="MAIN", dest_drive="MAIN"):
         if not source_drive in self.VALID_DRIVE: raise Exception("Invalid source drive!")
@@ -148,7 +146,7 @@ class AWG5014C(MessageBasedDriver):
         self.ftp = _ftp.FTP(self.ip)
         self.ftp.login()
         if print_progress:
-            FTP_Upload(self.ftp,local_filename, remote_filename)
+            FTP_Upload(self.ftp, local_filename, remote_filename)
         else:
             self.ftp.storbinary('STOR ' + remote_filename, open(local_filename, 'rb'), blocksize=1024)
         self.ftp.quit()
@@ -175,10 +173,8 @@ class AWG5014C(MessageBasedDriver):
         self.write('AWGCONTROL:SRESTORE "{}"'.format(filename))
 
 
-
 class FTP_Upload():
     def __init__(self, ftp, local_filename, remote_filename):
-
         block_size = 1024
         total_size = _os.path.getsize(local_filename)
         self.written_size = 0
@@ -188,12 +184,13 @@ class FTP_Upload():
         def callback(block):
             self.written_size += block_size
             time = _t.time()
-            percent = (self.written_size / total_size)*100
-            #print(time - self.last_time > 1,percent - self.last_percent  > 0.1)
-            if time - self.last_time > 1 and percent - self.last_percent  > 0.1:
+            percent = (self.written_size / total_size) * 100
+            # print(time - self.last_time > 1,percent - self.last_percent  > 0.1)
+            if time - self.last_time > 1 and percent - self.last_percent > 0.1:
                 self.last_time = time
                 self.last_percent = percent
                 print('{:.2f}%'.format(percent))
+
         print('Uploading "{}" to remote destination "{}"'.format(local_filename, remote_filename))
         ftp.storbinary('STOR ' + remote_filename, open(local_filename, 'rb'), blocksize=block_size, callback=callback)
 
@@ -213,7 +210,7 @@ def test_awg_file(awg):
 
     # Add sub-sequence
     s = a.add_subseq("pySeq")
-    s.add_line(wfm=("hey","hey","hey",""), repeat_count= 2)
+    s.add_line(wfm=("hey", "hey", "hey", ""), repeat_count=2)
     s.add_line(wfm=("test", "test", "test", ""), repeat_count=3)
     s.add_line(wfm=("hey", "hey", "hey", ""), repeat_count=4)
 
@@ -236,7 +233,7 @@ def generate_test_sequence1():
     """Generate a test sequence with two pulse
      one in between sequence and one within
     """
-    #Create the wfm
+    # Create the wfm
     m1 = _np.zeros(1024, dtype=_np.int32)
     m2 = _np.ones(1024, dtype=_np.int32)
     m2[0::2] = _np.zeros(512)
@@ -245,19 +242,18 @@ def generate_test_sequence1():
     m1[1] = 1
     return analog, m1, m2
 
+
 def generate_test_sequence2():
     """Generate a test sequence with two pulse
      one in between sequence and one within
     """
-    #Create the wfm
+    # Create the wfm
     m1 = _np.ones(1024, dtype=_np.int32)
     m2 = _np.zeros(1024, dtype=_np.int32)
     analog = _np.random.rand(1024)
     return analog, m1, m2
 
 
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     awg = AWG5014C('TCPIP0::192.168.1.104::4444::SOCKET')
     awg.initialize()

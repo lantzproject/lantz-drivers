@@ -21,12 +21,11 @@
     :license: BSD, see LICENSE for more details.
 """
 
-
-import sys
 import enum
-import xdrlib
 import socket
 import struct
+import sys
+import xdrlib
 
 #: Version of the protocol
 RPCVERSION = 2
@@ -50,16 +49,16 @@ class reply_stat(enum.IntEnum):
 
 
 class accept_stat(enum.IntEnum):
-    SUCCESS = 0            # RPC executed successfully
-    PROG_UNAVAIL = 1      # remote hasn't exported program
-    PROG_MISMATCH = 2      # remote can't support version #
-    PROC_UNAVAIL = 3      # program can't support procedure
-    GARBAGE_ARGS = 4      # procedure can't decode params
+    SUCCESS = 0  # RPC executed successfully
+    PROG_UNAVAIL = 1  # remote hasn't exported program
+    PROG_MISMATCH = 2  # remote can't support version #
+    PROC_UNAVAIL = 3  # program can't support procedure
+    GARBAGE_ARGS = 4  # procedure can't decode params
 
 
 class reject_stat(enum.IntEnum):
-    RPC_MISMATCH = 0       # RPC version number != 2
-    AUTH_ERROR = 1         # remote can't authenticate caller
+    RPC_MISMATCH = 0  # RPC version number != 2
+    AUTH_ERROR = 1  # remote can't authenticate caller
 
 
 class auth_stat(enum.IntEnum):
@@ -75,14 +74,18 @@ class auth_stat(enum.IntEnum):
 class RPCError(Exception):
     pass
 
+
 class RPCBadFormat(RPCError):
     pass
+
 
 class RPCBadVersion(RPCError):
     pass
 
+
 class RPCGarbageArgs(RPCError):
     pass
+
 
 class RPCUnpackError(RPCError):
     pass
@@ -196,7 +199,7 @@ class Client:
         self.prog = prog
         self.vers = vers
         self.port = port
-        self.lastxid = 0 # XXX should be more random?
+        self.lastxid = 0  # XXX should be more random?
         self.cred = None
         self.verf = None
 
@@ -288,17 +291,18 @@ def recvrecord(sock):
 class RawTCPClient(Client):
     """Client using TCP to a specific port.
     """
+
     def __init__(self, host, prog, vers, port):
         Client.__init__(self, host, prog, vers, port)
         self.connect()
-    
+
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.host, self.port))
-        
+
     def close(self):
         self.sock.close()
-    
+
     def do_call(self):
         call = self.packer.get_buf()
         sendrecord(self.sock, call)
@@ -317,11 +321,11 @@ class RawUDPClient(Client):
     def __init__(self, host, prog, vers, port):
         Client.__init__(self, host, prog, vers, port)
         self.connect()
-    
+
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.connect((self.host, self.port))
-        
+
     def close(self):
         self.sock.close()
 
@@ -333,7 +337,7 @@ class RawUDPClient(Client):
         except ImportError:
             print('WARNING: select not found, RPC may hang')
             select = None
-        BUFSIZE = 8192 # Max UDP buffer size
+        BUFSIZE = 8192  # Max UDP buffer size
         timeout = 1
         count = 5
         while 1:
@@ -344,7 +348,7 @@ class RawUDPClient(Client):
                 count = count - 1
                 if count < 0: raise RPCError('timeout')
                 if timeout < 25:
-                    timeout = timeout *2
+                    timeout = timeout * 2
                 self.sock.send(call)
                 continue
             reply = self.sock.recv(BUFSIZE)
@@ -364,7 +368,7 @@ class RawBroadcastUDPClient(RawUDPClient):
         RawUDPClient.__init__(self, bcastaddr, prog, vers, port)
         self.reply_handler = None
         self.timeout = 30
-    
+
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -373,7 +377,7 @@ class RawBroadcastUDPClient(RawUDPClient):
         self.reply_handler = reply_handler
 
     def set_timeout(self, timeout):
-        self.timeout = timeout # Use None for infinite timeout
+        self.timeout = timeout  # Use None for infinite timeout
 
     def make_call(self, proc, args, pack_func, unpack_func):
         if pack_func is None and args is not None:
@@ -388,10 +392,11 @@ class RawBroadcastUDPClient(RawUDPClient):
         except ImportError:
             print('WARNING: select not found, broadcast will hang')
             select = None
-        BUFSIZE = 8192 # Max UDP buffer size (for reply)
+        BUFSIZE = 8192  # Max UDP buffer size (for reply)
         replies = []
         if unpack_func is None:
             def dummy(): pass
+
             unpack_func = dummy
         while 1:
             r, w, x = [self.sock], [], []
@@ -423,18 +428,21 @@ PMAP_PROG = 100000
 PMAP_VERS = 2
 PMAP_PORT = 111
 
+
 class PMAP_VERS(enum.IntEnum):
-    PMAPPROC_NULL = 0                       # (void) -> void
-    PMAPPROC_SET = 1                        # (mapping) -> bool
-    PMAPPROC_UNSET = 2                      # (mapping) -> bool
-    PMAPPROC_GETPORT = 3                    # (mapping) -> unsigned int
-    PMAPPROC_DUMP = 4                       # (void) -> pmaplist
-    PMAPPROC_CALLIT = 5                     # (call_args) -> call_result
+    PMAPPROC_NULL = 0  # (void) -> void
+    PMAPPROC_SET = 1  # (mapping) -> bool
+    PMAPPROC_UNSET = 2  # (mapping) -> bool
+    PMAPPROC_GETPORT = 3  # (mapping) -> unsigned int
+    PMAPPROC_DUMP = 4  # (void) -> pmaplist
+    PMAPPROC_CALLIT = 5  # (call_args) -> call_result
+
 
 # A mapping is (prog, vers, prot, port) and prot is one of:
 
 IPPROTO_TCP = 6
 IPPROTO_UDP = 17
+
 
 # A pmaplist is a variable-length list of mappings, as follows:
 # either (1, mapping, pmaplist) or (0).
@@ -537,6 +545,7 @@ class BroadcastUDPPortMapperClient(PartialPortMapperClient, RawBroadcastUDPClien
 class TCPClient(RawTCPClient):
     """A TCP Client that find their server through the Port mapper
     """
+
     def __init__(self, host, prog, vers):
         pmap = TCPPortMapperClient(host)
         port = pmap.get_port((prog, vers, IPPROTO_TCP, 0))
@@ -549,6 +558,7 @@ class TCPClient(RawTCPClient):
 class UDPClient(RawUDPClient):
     """A UDP Client that find their server through the Port mapper
     """
+
     def __init__(self, host, prog, vers):
         pmap = UDPPortMapperClient(host)
         port = pmap.get_port((prog, vers, IPPROTO_UDP, 0))
@@ -593,7 +603,9 @@ class BroadcastUDPClient(Client):
         if pack_func:
             pack_func(args)
         if unpack_func is None:
-            def dummy(): pass
+            def dummy():
+                pass
+
             self.unpack_func = dummy
         else:
             self.unpack_func = unpack_func
@@ -611,10 +623,10 @@ class BroadcastUDPClient(Client):
 class Server:
 
     def __init__(self, host, prog, vers, port):
-        self.host = host # Should normally be '' for default interface
+        self.host = host  # Should normally be '' for default interface
         self.prog = prog
         self.vers = vers
-        self.port = port # Should normally be 0 for random port
+        self.port = port  # Should normally be 0 for random port
         self.port = port
         self.addpackers()
 
@@ -639,7 +651,7 @@ class Server:
         self.packer.pack_uint(xid)
         temp = self.unpacker.unpack_enum()
         if temp != msg_type.CALL:
-            return None # Not worthy of a reply
+            return None  # Not worthy of a reply
         self.packer.pack_uint(msg_type.REPLY)
         temp = self.unpacker.unpack_uint()
         if temp != RPCVERSION:
@@ -670,7 +682,7 @@ class Server:
         cred = self.unpacker.unpack_auth()
         verf = self.unpacker.unpack_auth()
         try:
-            meth() # Unpack args, call turn_around(), pack reply
+            meth()  # Unpack args, call turn_around(), pack reply
         except (EOFError, RPCGarbageArgs):
             # Too few or too many arguments
             self.packer.reset()
@@ -688,7 +700,7 @@ class Server:
             raise RPCGarbageArgs
         self.packer.pack_uint(accept_stat.SUCCESS)
 
-    def handle_0(self): # Handle NULL message
+    def handle_0(self):  # Handle NULL message
         self.turn_around()
 
     def addpackers(self):
@@ -702,7 +714,7 @@ class TCPServer(Server):
     def __init__(self, host, prog, vers, port):
         Server.__init__(self, host, prog, vers, port)
         self.connect()
-    
+
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.prot = IPPROTO_TCP
@@ -745,7 +757,7 @@ class TCPServer(Server):
         pid = None
         try:
             pid = os.fork()
-            if pid: # Parent
+            if pid:  # Parent
                 connection[0].close()
                 return
             # Child
@@ -761,12 +773,12 @@ class UDPServer(Server):
     def __init__(self, host, prog, vers, port):
         Server.__init__(self, host, prog, vers, port)
         self.connect()
-    
+
     def connect(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.prot = IPPROTO_UDP
         self.sock.bind((self.host, self.port))
-    
+
     def loop(self):
         while 1:
             self.session()

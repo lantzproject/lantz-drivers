@@ -1,8 +1,7 @@
-from lantz import Feat
-from lantz.messagebased import MessageBasedDriver
+from lantz.core import Feat, MessageBasedDriver
+
 
 class Lakeshore211(MessageBasedDriver):
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\r\n',

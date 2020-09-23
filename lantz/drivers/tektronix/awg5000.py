@@ -8,15 +8,13 @@
     Date: September 14, 2016
 """
 
-import numpy as np
-import re
-from enum import Enum
 import ftplib as _ftp
 import os as _os
+import re
 import time as _t
+from enum import Enum
 
-from lantz.messagebased import MessageBasedDriver
-from lantz import Feat, DictFeat, Action
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 class AWGState(Enum):
@@ -27,8 +25,8 @@ class AWGState(Enum):
 
 _ch_markers = [(ch, m) for ch in range(1, 5) for m in range(1, 3)]
 
-class AWG5000(MessageBasedDriver):
 
+class AWG5000(MessageBasedDriver):
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\n',
@@ -50,7 +48,7 @@ class AWG5000(MessageBasedDriver):
     def initialize(self):
         super().initialize()
 
-        #Start from the ftp directory
+        # Start from the ftp directory
         self.cd('\\')
         self.cd('ftp')
 
@@ -85,7 +83,8 @@ class AWG5000(MessageBasedDriver):
     @Action()
     def toggle_all_outputs(self, state):
         for channel in range(1, 5):
-            self.toggle_output[channel] = state
+            while not self.toggle_output[channel] == state:
+                self.toggle_output[channel] = state
 
     @DictFeat(units='V', keys=_ch_markers)
     def marker_amplitude(self, ch_m):
@@ -147,6 +146,14 @@ class AWG5000(MessageBasedDriver):
     def seq_loop_infinite(self, line, infinite_loop):
         self.write('SEQUENCE:ELEMENT{}:LOOP:INFINITE {}'.format(line, infinite_loop))
 
+    @DictFeat()
+    def seq_goto(self, line):
+        return int(self.query('SEQUENCE:ELEMENT{}:GOTO:INDEX?'.format(line)))
+
+    @seq_goto.setter
+    def seq_goto(self, line, goto_line):
+        self.write('SEQUENCE:ELEMENT{}:GOTO:INDEX {}'.format(line, goto_line))
+
     @Action()
     def jump_to_line(self, line):
         self.write('SEQ:JUMP:IMM {}'.format(line))
@@ -165,7 +172,6 @@ class AWG5000(MessageBasedDriver):
         index, channel = key
         self.write('SEQ:ELEM{}:WAV{} {}'.format(index, channel, value))
 
-
     # ----------------------------------------------------
     # Hard Drive navigation method
     # ----------------------------------------------------
@@ -177,7 +183,7 @@ class AWG5000(MessageBasedDriver):
 
     @Action()
     def ls(self, verbose=True):
-        #Query the current directory and the content
+        # Query the current directory and the content
         dir = self.query("MMEM:CDIR?").strip('"')
         content = self.query("MMEM:CAT?").split(',"')
         used, avail = map(int, content.pop(0).split(","))
@@ -187,15 +193,17 @@ class AWG5000(MessageBasedDriver):
         for item in content:
             item = item.strip('"')
             name, isDir, size = item.split(',')
-            if isDir=='DIR': dirs.append(name)
-            else           : files.append((name, size))
+            if isDir == 'DIR':
+                dirs.append(name)
+            else:
+                files.append((name, size))
 
         # Build and print an answer (or return it
         if verbose:
             spaces_size = 30
-            ans =  "{} ({:.2f}% full):\r\n".format(dir, (used / (used + avail)))
-            for d in dirs: ans += '\t|_ '+d+(' '*(spaces_size-len(d)))+'DIR\n'
-            for f in files: ans += '\t|_ '+f[0]+(' '*(spaces_size-len(f[0])))+f[1]+'\n'
+            ans = "{} ({:.2f}% full):\r\n".format(dir, (used / (used + avail)))
+            for d in dirs: ans += '\t|_ ' + d + (' ' * (spaces_size - len(d))) + 'DIR\n'
+            for f in files: ans += '\t|_ ' + f[0] + (' ' * (spaces_size - len(f[0]))) + f[1] + '\n'
             print(ans)
         else:
             return (dir, used, avail), dirs, files
@@ -214,7 +222,7 @@ class AWG5000(MessageBasedDriver):
     def get_current_drive(self):
         print(self.query(':MMEM:MSIS?'))
 
-    #This might not work
+    # This might not work
     @Action()
     def mv(self, source_file_path, dest_file_path, source_drive="MAIN", dest_drive="MAIN"):
         if not source_drive in self.VALID_DRIVE: raise Exception("Invalid source drive!")
@@ -232,7 +240,7 @@ class AWG5000(MessageBasedDriver):
         self.ftp = _ftp.FTP(self.ip)
         self.ftp.login()
         if print_progress:
-            FTP_Upload(self.ftp,local_filename, remote_filename)
+            FTP_Upload(self.ftp, local_filename, remote_filename)
         else:
             self.ftp.storbinary('STOR ' + remote_filename, open(local_filename, 'rb'), blocksize=1024)
         self.ftp.quit()
@@ -242,10 +250,8 @@ class AWG5000(MessageBasedDriver):
         self.write('AWGCONTROL:SRESTORE "{}"'.format(filename))
 
 
-
 class FTP_Upload():
     def __init__(self, ftp, local_filename, remote_filename):
-
         block_size = 1024
         total_size = _os.path.getsize(local_filename)
         self.written_size = 0
@@ -255,12 +261,13 @@ class FTP_Upload():
         def callback(block):
             self.written_size += block_size
             time = _t.time()
-            percent = (self.written_size / total_size)*100
-            #print(time - self.last_time > 1,percent - self.last_percent  > 0.1)
-            if time - self.last_time > 1 and percent - self.last_percent  > 0.1:
+            percent = (self.written_size / total_size) * 100
+            # print(time - self.last_time > 1,percent - self.last_percent  > 0.1)
+            if time - self.last_time > 1 and percent - self.last_percent > 0.1:
                 self.last_time = time
                 self.last_percent = percent
                 print('{:.2f}%'.format(percent))
+
         print('Uploading "{}" to remote destination "{}"'.format(local_filename, remote_filename))
         ftp.storbinary('STOR ' + remote_filename, open(local_filename, 'rb'), blocksize=block_size, callback=callback)
 

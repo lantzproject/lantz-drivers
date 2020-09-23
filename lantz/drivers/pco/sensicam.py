@@ -16,16 +16,14 @@
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-
-from time import sleep
-from collections import namedtuple
-
 import ctypes as ct
-import numpy as np
+from collections import namedtuple
+from time import sleep
 
-from lantz import Action, Feat
-from lantz import errors
-from lantz.foreign import LibraryDriver, RetTuple
+import numpy as np
+from lantz.core import Action, Feat, errors
+from lantz.core.foreign import LibraryDriver
+
 
 class Status(object):
     READ_BUSY = 1
@@ -33,38 +31,39 @@ class Status(object):
     COC_RUNNING = 4
     BUFFERS_FULL = 8
 
+
 _ERRORS = {
-        0: "Success",
-        -1: "No camera connected",
-        -2: "Timeout",
-        -3: "Wrong parameter",
-        -4: "cannot locate card",
-        -5: "cannot allocate DMA buffer",
-        -7: "DMA timeout",
-        -8: "Invalid camera mode",
-        -9: "No driver installed",
-        -10: "No PCI bios found",
-        -11: "Device is hold by another process",
-        -12: "Error in reading or writing data to board",
-        -13: "Wrong driver function",
-        -20: "Load COC error",
-        -21: "Too many values in COC",
-        -22: "Temperatur out of range",
-        -23: "Buffer allocate error",
-        -24: "Read image error",
-        -25: "Set/reset buffer flags is failed",
-        -26: "Buffer is used",
-        -27: "Call to a windows function is failed",
-        -28: "DMA error",
-        -29: "Cannot open file",
-        -30: "Registry error",
-        -31: "Open dialog error",
-        -32: "Needs newer called vxd or dll",
-        100: 'no image in PCI buffer',
-        101: 'picture too dark',
-        102: 'picture too bright',
-        103: 'one or more values changed',
-        104: 'buffer for builded string too short'}
+    0: "Success",
+    -1: "No camera connected",
+    -2: "Timeout",
+    -3: "Wrong parameter",
+    -4: "cannot locate card",
+    -5: "cannot allocate DMA buffer",
+    -7: "DMA timeout",
+    -8: "Invalid camera mode",
+    -9: "No driver installed",
+    -10: "No PCI bios found",
+    -11: "Device is hold by another process",
+    -12: "Error in reading or writing data to board",
+    -13: "Wrong driver function",
+    -20: "Load COC error",
+    -21: "Too many values in COC",
+    -22: "Temperatur out of range",
+    -23: "Buffer allocate error",
+    -24: "Read image error",
+    -25: "Set/reset buffer flags is failed",
+    -26: "Buffer is used",
+    -27: "Call to a windows function is failed",
+    -28: "DMA error",
+    -29: "Cannot open file",
+    -30: "Registry error",
+    -31: "Open dialog error",
+    -32: "Needs newer called vxd or dll",
+    100: 'no image in PCI buffer',
+    101: 'picture too dark',
+    102: 'picture too bright',
+    103: 'one or more values changed',
+    104: 'buffer for builded string too short'}
 
 #: Command Operation Code tuple
 COC = namedtuple('COC', 'mode trigger roi binning table')
@@ -105,7 +104,7 @@ class Sensicam(LibraryDriver):
         temp_ele = ct.pointer(ct.c_int())
         temp_ccd = ct.pointer(ct.c_int())
         err = self.lib.GET_STATUS(cam_type, temp_ele, temp_ccd)
-        #return "{}".format(_ERRORS[err])
+        # return "{}".format(_ERRORS[err])
         return cam_type, temp_ele, temp_ccd
 
     @Feat()
@@ -175,10 +174,10 @@ class Sensicam(LibraryDriver):
         self.lib.STOP_COC(0)
 
     @Action()
-    def run_coc(self, runmode = 4):
-         # 0 continuous - 4 single
+    def run_coc(self, runmode=4):
+        # 0 continuous - 4 single
         self.lib.RUN_COC(runmode)
-        
+
     @Feat()
     def coc(self):
         """Command Operation Code
@@ -194,17 +193,17 @@ class Sensicam(LibraryDriver):
         vbin = ct.pointer(ct.c_int())
         table = ct.create_string_buffer(40)
         self.lib.GET_SETTINGS(mode, trig, roix1, roix2, roiy1, roiy2,
-                               hbin, vbin, table) #Todo: Try RetTuple
+                              hbin, vbin, table)  # Todo: Try RetTuple
 
         return COC(mode[0], trig[0], (roix1[0], roix2[0], roiy1[0], roiy2[0]),
-            (hbin[0], vbin[0]), table[0].decode('ascii'))
+                   (hbin[0], vbin[0]), table[0].decode('ascii'))
 
     @coc.setter
     def coc(self, value):
         newcoc = (value.mode, value.trigger) + value.roi + \
-                  value.binning + (value.table, )
+                 value.binning + (value.table,)
         self.lib.SET_COC(*newcoc)
-        
+
     @Feat()
     def image_status(self):
         """Image status
@@ -223,7 +222,7 @@ class Sensicam(LibraryDriver):
 
         return width[0], height[0]
 
-    @Feat(units='microseconds') #TODO: check units
+    @Feat(units='microseconds')  # TODO: check units
     def coc_time(self):
         return self.lib.GET_COCTIME()
 
@@ -240,7 +239,7 @@ class Sensicam(LibraryDriver):
         return self.lib.GET_BELTIME()
 
     @Action(units='ms')
-    def expose(self, exposure = 1):
+    def expose(self, exposure=1):
         """Expose.
 
         :param exposure: exposure time.
@@ -260,12 +259,11 @@ class Sensicam(LibraryDriver):
         :rtype: NumPy array
         """
         width, height = self.image_size
-        imagearray = np.zeros((width,height), dtype=np.dtype(np.ushort))
+        imagearray = np.zeros((width, height), dtype=np.dtype(np.ushort))
         image = np.ascontiguousarray(imagearray)
         ptrimage = image.ctypes.data_as(ct.POINTER(ct.c_ushort))
         self.lib.READ_IMAGE_12BIT(0, width, height, ptrimage)
         return image
-
 
     @Action(units='ms')
     def take_image(self, exposure=1):
@@ -293,6 +291,7 @@ if __name__ == '__main__':
     with Sensicam(args.board) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
             import matplotlib.pyplot as plt

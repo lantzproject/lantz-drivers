@@ -5,13 +5,11 @@
 # Date: 8/3/2016
 # Version: 0.1
 
-from lantz.driver import Driver
-from lantz import Feat, DictFeat, Action
-
-from lantz import Q_
-
 import socket
 import warnings
+
+from lantz.core import Action, Driver, Feat
+
 
 # class MontanaWarning(Warning):
 #     """
@@ -32,8 +30,8 @@ class Cryostation(Driver):
         Initialize function for Cryostation communication port, uses Python
         sockets library to open socket communication with Cryostation.
         """
-        #print('IP address:{}'.format(self.address))
-        #print('Port:{}'.format(self.port))
+        # print('IP address:{}'.format(self.address))
+        # print('Port:{}'.format(self.port))
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.address, self.port))
@@ -197,7 +195,6 @@ class Cryostation(Driver):
             data = received.decode()
 
         if ((data[2:] == '-0.100') and raise_warning):
-
             warnings.warn('Unable to return parameter from command {}.'.format(message))
             return 0
 

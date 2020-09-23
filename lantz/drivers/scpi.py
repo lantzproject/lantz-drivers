@@ -11,7 +11,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat, Driver
+from lantz.core import Feat
+
 from lantz.drivers.ieee4882 import IEEE4882Driver
 
 

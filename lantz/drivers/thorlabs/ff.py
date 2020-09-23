@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import os
-
-from lantz import Feat
-from lantz.foreign import LibraryDriver
 from ctypes import c_char_p
 from time import sleep
 
-class FF(LibraryDriver):
+from lantz.core import Feat
+from lantz.core.foreign import LibraryDriver
 
+
+class FF(LibraryDriver):
     lib_path = os.path.join(os.environ['PROGRAMFILES'], 'Thorlabs\\Kinesis')
     lib_name = 'Thorlabs.MotionControl.FilterFlipper.dll'
-
 
     LIBRARY_NAME = os.path.join(lib_path, lib_name)
     LIBRARY_PREFIX = ''
@@ -41,11 +40,12 @@ class FF(LibraryDriver):
         self.lib.FF_MoveToPosition(self.serial_no, value)
         return
 
+
 if __name__ == '__main__':
     import logging
     import sys
     from lantz.log import log_to_screen
-    import numpy as np
+
     log_to_screen(logging.CRITICAL)
     serial_no = sys.argv[1]
     with FF(serial_no) as inst:

@@ -10,16 +10,14 @@
 """
 
 import numpy as np
+from lantz.core import Action, Feat
+from lantz.core.foreign import RetValue
 
-from lantz import Feat, Action
-from lantz.foreign import RetStr, RetTuple, RetValue
-
-from .base import Task, Channel
+from .base import Task
 from .constants import Constants
 
 _GROUP_BY = {'scan': Constants.Val_GroupByScanNumber,
              'channel': Constants.Val_GroupByChannel}
-
 
 
 class AnalogInputTask(Task):
@@ -138,7 +136,7 @@ class AnalogInputTask(Task):
             if group_by == 'scan':
                 return data[:count]
             else:
-                return data[:,:count]
+                return data[:, :count]
 
         return data
 
@@ -196,7 +194,7 @@ class AnalogOutputTask(Task):
                                                 float64(data), None)
             return 1
 
-        data = np.asarray(data, dtype = np.float64)
+        data = np.asarray(data, dtype=np.float64)
 
         number_of_channels = self.number_of_channels()
 
@@ -304,8 +302,8 @@ class DigitalTask(Task):
         if self.one_channel_for_all_lines:
             nof_lines = []
             for channel in self.names_of_channels():
-                nof_lines.append(self.number_of_lines (channel))
-            c = int (max (nof_lines))
+                nof_lines.append(self.number_of_lines(channel))
+            c = int(max(nof_lines))
             dtype = getattr(np, 'uint%s' % (8 * c))
         else:
             c = 1
@@ -314,20 +312,20 @@ class DigitalTask(Task):
         number_of_channels = self.number_of_channels()
 
         if group_by == Constants.Val_GroupByScanNumber:
-            data = np.zeros((samples_per_channel, number_of_channels),dtype=dtype)
+            data = np.zeros((samples_per_channel, number_of_channels), dtype=dtype)
         else:
-            data = np.zeros((number_of_channels, samples_per_channel),dtype=dtype)
+            data = np.zeros((number_of_channels, samples_per_channel), dtype=dtype)
 
-        err, count, bps = self.lib.ReadDigitalLines(samples_per_channel, float64 (timeout),
-              group_by, data.ctypes.data, uInt32 (data.size * c),
-              RetValue('i32'), RetValue('i32'),
-              None
-        )
+        err, count, bps = self.lib.ReadDigitalLines(samples_per_channel, float64(timeout),
+                                                    group_by, data.ctypes.data, uInt32(data.size * c),
+                                                    RetValue('i32'), RetValue('i32'),
+                                                    None
+                                                    )
         if count < samples_per_channel:
             if group_by == 'scan':
                 return data[:count], bps
             else:
-                return data[:,:count], bps
+                return data[:, :count], bps
         return data, bps
 
 
@@ -399,9 +397,9 @@ class DigitalOutputTask(DigitalTask):
         number_of_channels = self.get_number_of_channels()
 
         if np.isscalar(data):
-            data = np.array([data]*number_of_channels, dtype = np.uint8)
+            data = np.array([data] * number_of_channels, dtype=np.uint8)
         else:
-            data = np.asarray(data, dtype = np.uint8)
+            data = np.asarray(data, dtype=np.uint8)
 
         if data.ndims == 1:
             if number_of_channels == 1:
@@ -429,6 +427,7 @@ class DigitalOutputTask(DigitalTask):
         return count
 
         # NotImplemented: WriteDigitalU8, WriteDigitalU16, WriteDigitalU32, WriteDigitalScalarU32
+
 
 class CounterInputTask(Task):
     """Exposes NI-DAQmx counter input task to Python.
@@ -506,7 +505,7 @@ class CounterInputTask(Task):
         if samples_per_channel is None:
             samples_per_channel = self.samples_per_channel_available()
 
-        data = np.zeros((samples_per_channel,),dtype=np.int32)
+        data = np.zeros((samples_per_channel,), dtype=np.int32)
 
         err, count = self.lib.ReadCounterU32(samples_per_channel, float64(timeout),
                                              data.ctypes.data, data.size, RetValue('i32'), None)
@@ -515,7 +514,6 @@ class CounterInputTask(Task):
 
 
 class CounterOutputTask(Task):
-
     """Exposes NI-DAQmx counter output task to Python.
     """
 

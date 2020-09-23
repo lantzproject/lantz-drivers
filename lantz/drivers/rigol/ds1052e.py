@@ -11,13 +11,11 @@
     Source: DS1052e manual
 """
 
-
-from lantz import MessageBasedDriver
+from lantz.core import MessageBasedDriver
 
 
 class DS1052e(MessageBasedDriver):
     pass
-
 
 
 if __name__ == '__main__':

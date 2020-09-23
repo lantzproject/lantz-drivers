@@ -1,14 +1,9 @@
-
-
-from lantz import Feat, DictFeat, Action
-from lantz.errors import InstrumentError
-from lantz.messagebased import MessageBasedDriver
-
 from time import sleep
 
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
+
+
 class ITC4020(MessageBasedDriver):
-
-
     DEFAULTS = {
         'COMMON': {
             'write_termination': '\n',
@@ -52,10 +47,9 @@ class ITC4020(MessageBasedDriver):
     def read_error_queue(self):
         error = self.query('SYST:ERR:NEXT?')
         print(error)
-        while(not 'No error' in error):
+        while (not 'No error' in error):
             error = self.query('SYST:ERR:NEXT?')
             print(error)
-
 
     @Feat(values={False: '0', True: '1'})
     def ld_state(self):
@@ -124,6 +118,7 @@ if __name__ == '__main__':
     import logging
     import sys
     from lantz.log import log_to_screen
+
     log_to_screen(logging.CRITICAL)
     res_name = sys.argv[1]
     fmt_str = "{:<30}|{:>30}"

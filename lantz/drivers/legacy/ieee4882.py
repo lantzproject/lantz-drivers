@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat, Driver
+from lantz.core import Action, Driver, Feat
 
 
 class IEEE4882Driver(Driver):

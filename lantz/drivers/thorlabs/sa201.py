@@ -1,10 +1,7 @@
+from lantz.core import Driver, Feat, Q_
+
 from lantz.drivers.ni.daqmx import AnalogInputTask, VoltageInputChannel
 
-from lantz.driver import Driver
-from lantz.feat import Feat
-from lantz import Q_
-
-import numpy as np
 
 class SA201(Driver):
 
@@ -40,6 +37,7 @@ class SA201(Driver):
     def finalize(self):
         self.task.clear()
         return
+
 
 if __name__ == '__main__':
     input_ch = '/dev1/ai6'

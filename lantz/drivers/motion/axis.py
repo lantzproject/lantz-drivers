@@ -12,14 +12,12 @@
 
 """
 
-
-from lantz.feat import Feat
-from lantz.action import Action
-from lantz.driver import Driver
-from lantz import Q_
-from lantz.processors import convert_to
 import time
+
 import numpy as np
+from lantz.core import Action, Driver, Feat
+from lantz.core.processors import convert_to
+
 
 #  Add generic units:
 # ureg.define('unit = unit')
@@ -89,7 +87,6 @@ class MotionAxisSingle(Driver):
                                                            self.position))
         return False
 
-
     @Feat(values={True: '1', False: '0'})
     def motion_done(self):
         raise NotImplementedError
@@ -130,6 +127,7 @@ class MotionAxisMultiple(MotionAxisSingle):
         return self.parent.write('{:d}{}'.format(self.num, command),
                                  *args, **kwargs)
 
+
 class BacklashMixing():
     '''Adds functionality to a motionaxis: blacklash correction'''
 
@@ -154,10 +152,9 @@ class BacklashMixing():
         if self.backlash:
             position = self.position.magnitude
             backlash = convert_to(self.units, on_dimensionless='ignore'
-                                   )(self.backlash).magnitude
-            if (backlash < 0 and position > pos) or\
-               (backlash > 0 and position < pos):
-
+                                  )(self.backlash).magnitude
+            if (backlash < 0 and position > pos) or \
+                    (backlash > 0 and position < pos):
                 self.log_info('Using backlash')
                 self.__set_position(pos + backlash)
                 self._wait_until_done()

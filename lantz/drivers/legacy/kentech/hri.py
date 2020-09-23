@@ -27,14 +27,15 @@
 
 """
 
-from lantz import Feat, Action
+from lantz.core import Action, Feat, errors
+
 from lantz.drivers.legacy.serial import SerialDriver
-from lantz import errors
+
 
 def between(s, before, after):
     ndx1 = s.index(before)
     ndx2 = s.index(after)
-    return s[ndx1+len(before):ndx2]
+    return s[ndx1 + len(before):ndx2]
 
 
 class HRI(SerialDriver):
@@ -71,7 +72,7 @@ class HRI(SerialDriver):
         """Remote or local.
         """
         if value:
-            #self.query_expect('', None, None)
+            # self.query_expect('', None, None)
             self.query_expect('\r', expected=None)
             self.recv()
         else:
@@ -133,7 +134,7 @@ class HRI(SerialDriver):
                 pos = ans.index('.')
             except ValueError:
                 raise errors.InstrumentError('Unsupported operation.')
-            return float(ans[pos+2:pos+7])
+            return float(ans[pos + 2:pos + 7])
 
     @trigger_ecl_level.setter
     def trigger_ecl_level(self, value):
@@ -157,7 +158,7 @@ class HRI(SerialDriver):
                 pos = ans.index('.')
             except ValueError:
                 raise errors.InstrumentError('Unsupported operation.')
-            return float(ans[pos+2:pos+7]) / 10.0
+            return float(ans[pos + 2:pos + 7]) / 10.0
 
     @clamp_voltage.setter
     def clamp_voltage(self, value):
@@ -181,7 +182,7 @@ class HRI(SerialDriver):
                 pos = ans.index('.')
             except ValueError:
                 raise errors.InstrumentError('Unsupported operation.')
-            return float(ans[pos+2:pos+7]) / 10.
+            return float(ans[pos + 2:pos + 7]) / 10.
 
     @average_voltage.setter
     def average_voltage(self, value):
@@ -203,7 +204,7 @@ class HRI(SerialDriver):
             return self.query_expect('{} !MCPVOLTS'.format(value))
 
     @Feat(None, values={'inhibit': 0, 'rf': 21, 'ldc': 22, 'hdc': 23, 'dc': 24,
-                     'user1': 25, 'user2': 26, 'user3': 27, 'user4': 28})
+                        'user1': 25, 'user2': 26, 'user3': 27, 'user4': 28})
     def mode(self, mode):
         """Gain modulation mode.
 
@@ -218,7 +219,7 @@ class HRI(SerialDriver):
         24       DC
         25-28    user modes 1 to 4
         """
-        #TODO: Modes [11-20] not available in rev < 2.0
+        # TODO: Modes [11-20] not available in rev < 2.0
         return self.query_expect("{} !MODE".format(mode))
 
     @Feat(None)
@@ -267,15 +268,16 @@ if __name__ == '__main__':
     with HRI(args.port, baudrate=9600) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
+
             start_test_app(inst)
         else:
-            #inst.clear()
+            # inst.clear()
             inst.remote = True
             print(inst.revision)
             inst.mode = "inhibit"
             inst.mcp = 350
             inst.rfgain = 99
-            #print(inst.status)
+            # print(inst.status)
             inst.mode = "rf"
-            #print(inst.status)
+            # print(inst.status)
             inst.remote = False

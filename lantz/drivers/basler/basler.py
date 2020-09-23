@@ -26,21 +26,19 @@
     - Set ROI
 """
 
-from lantz.driver import Driver
-# from lantz.foreign import LibraryDriver
-from lantz import Feat, DictFeat, Action
-# import ctypes as ct
-import pypylon
 # import numpy as np
 import threading
 
+# import ctypes as ct
+import pypylon
+from lantz.core import Action, Driver, Feat
 
 beginner_controls = ['ExposureTimeAbs', 'GainRaw', 'Width', 'Height',
                      'OffsetX', 'OffsetY']
 property_units = {'ExposureTimeAbs': 'us', }
 aliases = {'exposure_time': 'ExposureTimeAbs',
            'gain': 'GainRaw',
-          }
+           }
 
 
 def todict(listitems):
@@ -67,12 +65,14 @@ def attach_dyn_propr(instance, prop_name, propr):
 def create_getter(p):
     def tmpfunc(self):
         return self.cam.properties[p]
+
     return tmpfunc
 
 
 def create_setter(p):
     def tmpfunc(self, val):
         self.cam.properties[p] = val
+
     return tmpfunc
 
 
@@ -191,21 +191,21 @@ class BaslerCam(Driver):
         # We can still get information of the camera back
         return 'Camera info of camera object:', self.cam.device_info
 
-#    @Feat(units='us')
-#    def exposure_time(self):
-#        return self.cam.properties['ExposureTimeAbs']
-#
-#    @exposure_time.setter
-#    def exposure_time(self, time):
-#        self.cam.properties['ExposureTimeAbs'] = time
-#
-#    @Feat()
-#    def gain(self):
-#        return self.cam.properties['GainRaw']
-#
-#    @gain.setter
-#    def gain(self, value):
-#        self.cam.properties['GainRaw'] = value
+    #    @Feat(units='us')
+    #    def exposure_time(self):
+    #        return self.cam.properties['ExposureTimeAbs']
+    #
+    #    @exposure_time.setter
+    #    def exposure_time(self, time):
+    #        self.cam.properties['ExposureTimeAbs'] = time
+    #
+    #    @Feat()
+    #    def gain(self):
+    #        return self.cam.properties['GainRaw']
+    #
+    #    @gain.setter
+    #    def gain(self, value):
+    #        self.cam.properties['GainRaw'] = value
 
     @Feat(values=todict(['Mono8', 'Mono12', 'Mono12Packed']))
     def pixel_format(self):
@@ -259,15 +259,15 @@ class BaslerCam(Driver):
     @Action()
     def set_roi(self, height, width, yoffset, xoffset):
         # Validation:
-        if width+xoffset > self.properties['WidthMax']:
+        if width + xoffset > self.properties['WidthMax']:
             self.log_error('Not setting ROI:  Width + xoffset = {} exceeding '
-                           'max width of camera {}.'.format(width+xoffset,
-                                                self.properties['WidthMax']))
+                           'max width of camera {}.'.format(width + xoffset,
+                                                            self.properties['WidthMax']))
             return
-        if height+yoffset > self.properties['HeightMax']:
+        if height + yoffset > self.properties['HeightMax']:
             self.log_error('Not setting ROI: Height + yoffset = {} exceeding '
-                           'max height of camera {}.'.format(height+yoffset,
-                                                self.properties['HeightMax']))
+                           'max height of camera {}.'.format(height + yoffset,
+                                                             self.properties['HeightMax']))
             return
 
         # Offset should be multiple of 2:

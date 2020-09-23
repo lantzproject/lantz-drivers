@@ -1,25 +1,21 @@
-#Sacher_playground.py
+# Sacher_playground.py
 """
 Make sure you're in the lantz32 environment to run this code properly
 """
 
-import visa
-import types
 import ctypes
-import sys
-import numpy as np
-import logging
-from ctypes.wintypes import DWORD
-from ctypes.wintypes import WORD
 import ctypes.wintypes
+import logging
 import time
+from ctypes.wintypes import DWORD, WORD
+
+import numpy as np
 
 eposlib = ctypes.windll.LoadLibrary('C:\\Users\\Carbro\\Desktop\\Charmander\\EposCmd.dll')
 
 DeviceName = b'EPOS'
 ProtocolStackName = b'MAXON_RS232'
 InterfaceName = b'RS232'
-
 
 """
     ok before I dive into this giant Sacher class thing let me just list here all the functions that are being defined in this class:
@@ -55,20 +51,22 @@ InterfaceName = b'RS232'
 
 class Sacher_EPOS():
 
-#1)
+    # 1)
     def __init__(self, name, address, reset=False):
         self._port_name = address
         self._is_open = False
         self._HPM = True
         self.open()
         self.initialize()
+
     """
     This is the special "__init__" function that gets runs automatically
     """
 
-#2)
+    # 2)
     def open(self):
-        eposlib.VCS_OpenDevice.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(DWORD)]
+        eposlib.VCS_OpenDevice.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p,
+                                           ctypes.POINTER(DWORD)]
         eposlib.VCS_OpenDevice.restype = ctypes.wintypes.HANDLE
         buf = ctypes.pointer(DWORD(0))
         ret = ctypes.wintypes.HANDLE()
@@ -79,7 +77,7 @@ class Sacher_EPOS():
             self._keyhandle = ret
         return
 
-#3)
+    # 3)
     """
     This uses u32todouble three times, for the three coefficients
 
@@ -92,130 +90,158 @@ class Sacher_EPOS():
     self._currentwl = self._doubleA*(self._offset)**2.0 + self._doubleB*self._offset + self._doubleC
 
     """
+
     def initialize(self):
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
         BaudRate = DWORD(38400)
         Timeout = DWORD(100)
-        ret = eposlib.VCS_SetProtocolStackSettings(self._keyhandle,BaudRate,Timeout,ctypes.byref(buf))
+        ret = eposlib.VCS_SetProtocolStackSettings(self._keyhandle, BaudRate, Timeout, ctypes.byref(buf))
         if ret == 0:
             errbuf = ctypes.create_string_buffer(64)
             raise ValueError(errbuf.value)
         buf = ctypes.wintypes.DWORD(0)
-        ret = eposlib.VCS_ClearFault(self._keyhandle,nodeID,ctypes.byref(buf))
+        ret = eposlib.VCS_ClearFault(self._keyhandle, nodeID, ctypes.byref(buf))
         if ret == 0:
             errbuf = ctypes.create_string_buffer(64)
             eposlib.VCS_GetErrorInfo(buf, errbuf, WORD(64))
             raise ValueError(errbuf.value)
         buf = ctypes.wintypes.DWORD(0)
         plsenabled = ctypes.wintypes.DWORD(0)
-        ret = eposlib.VCS_GetEnableState(self._keyhandle,nodeID,ctypes.byref(plsenabled),ctypes.byref(buf))
+        ret = eposlib.VCS_GetEnableState(self._keyhandle, nodeID, ctypes.byref(plsenabled), ctypes.byref(buf))
         if ret == 0:
             errbuf = ctypes.create_string_buffer(64)
             eposlib.VCS_GetErrorInfo(buf, errbuf, WORD(64))
             raise ValueError(errbuf.value)
         if int(plsenabled.value) != 0:
             logging.warning(__name__ + ' EPOS motor enabled, disabling before proceeding.')
-            ret = eposlib.VCS_SetDisableState(self._keyhandle,nodeID,ctypes.byref(buf))
+            ret = eposlib.VCS_SetDisableState(self._keyhandle, nodeID, ctypes.byref(buf))
             if int(ret) != 0:
                 logging.warning(__name__ + ' EPOS motor successfully disabled, proceeding')
             else:
                 logging.error(__name__ + ' EPOS motor was not successfully disabled!')
         buf = ctypes.wintypes.DWORD(0)
-        Counts = WORD(512) # incremental encoder counts in pulses per turn
+        Counts = WORD(512)  # incremental encoder counts in pulses per turn
         PositionSensorType = WORD(4)
-        ret = eposlib.VCS_SetEncoderParameter(self._keyhandle,nodeID,Counts,PositionSensorType,ctypes.byref(buf))
+        ret = eposlib.VCS_SetEncoderParameter(self._keyhandle, nodeID, Counts, PositionSensorType, ctypes.byref(buf))
 
         # Get operation mode, check if it's 1 -- this is "profile position mode"
         buf = ctypes.wintypes.DWORD(0)
         pMode = ctypes.pointer(ctypes.c_int8())
-        eposlib.VCS_GetOperationMode.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.POINTER(ctypes.c_int8), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetOperationMode.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                                 ctypes.POINTER(ctypes.c_int8), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetOperationMode.restype = ctypes.wintypes.BOOL
         ret = eposlib.VCS_GetOperationMode(self._keyhandle, nodeID, pMode, ctypes.byref(buf))
         # if mode is not 1, make it 1
         if pMode.contents.value != 1:
-            eposlib.VCS_SetOperationMode.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.c_int8, ctypes.POINTER(ctypes.wintypes.DWORD)]
+            eposlib.VCS_SetOperationMode.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.c_int8,
+                                                     ctypes.POINTER(ctypes.wintypes.DWORD)]
             eposlib.VCS_SetOperationMode.restype = ctypes.wintypes.BOOL
             pMode_setting = ctypes.c_int8(1)
             ret = eposlib.VCS_SetOperationMode(self._keyhandle, nodeID, pMode_setting, ctypes.byref(buf))
-        eposlib.VCS_GetPositionProfile.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetPositionProfile.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                                   ctypes.POINTER(ctypes.wintypes.DWORD),
+                                                   ctypes.POINTER(ctypes.wintypes.DWORD),
+                                                   ctypes.POINTER(ctypes.wintypes.DWORD),
+                                                   ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetPositionProfile.restype = ctypes.wintypes.BOOL
         pProfileVelocity = ctypes.pointer(ctypes.wintypes.DWORD())
         pProfileAcceleration = ctypes.pointer(ctypes.wintypes.DWORD())
         pProfileDeceleration = ctypes.pointer(ctypes.wintypes.DWORD())
-        ret = eposlib.VCS_GetPositionProfile(self._keyhandle, nodeID, pProfileVelocity, pProfileAcceleration, pProfileDeceleration,ctypes.byref(buf))
+        ret = eposlib.VCS_GetPositionProfile(self._keyhandle, nodeID, pProfileVelocity, pProfileAcceleration,
+                                             pProfileDeceleration, ctypes.byref(buf))
 
-        #print(pProfileVelocity.contents.value, pProfileAcceleration.contents.value, pProfileDeceleration.contents.value)
+        # print(pProfileVelocity.contents.value, pProfileAcceleration.contents.value, pProfileDeceleration.contents.value)
 
-        if (int(pProfileVelocity.contents.value) > int(11400) or int(pProfileAcceleration.contents.value) > int(60000) or int(pProfileDeceleration.contents.value) > int(60000)):
-            eposlib.VCS_GetPositionProfile.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.DWORD, ctypes.wintypes.DWORD, ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD)]
+        if (int(pProfileVelocity.contents.value) > int(11400) or int(pProfileAcceleration.contents.value) > int(
+                60000) or int(pProfileDeceleration.contents.value) > int(60000)):
+            eposlib.VCS_GetPositionProfile.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                                       ctypes.wintypes.DWORD, ctypes.wintypes.DWORD,
+                                                       ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD)]
             eposlib.VCS_GetPositionProfile.restype = ctypes.wintypes.BOOL
             pProfileVelocity = ctypes.wintypes.DWORD(429)
             pProfileAcceleration = ctypes.wintypes.DWORD(429)
             pProfileDeceleration = ctypes.wintypes.DWORD(429)
             logging.warning(__name__ + ' GetPositionProfile out of bounds, resetting...')
-            ret = eposlib.VCS_SetPositionProfile(self._keyhandle, nodeID, pProfileVelocity, pProfileAcceleration, pProfileDeceleration,ctypes.byref(buf))
+            ret = eposlib.VCS_SetPositionProfile(self._keyhandle, nodeID, pProfileVelocity, pProfileAcceleration,
+                                                 pProfileDeceleration, ctypes.byref(buf))
 
         self._offset = self.get_offset()
 
         """DC - These are hardcoded values I got from the LabVIEW program -- I don't think any documentation exists on particular object indices"""
 
         """Coefficient A"""
-        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetObject.restype = ctypes.wintypes.BOOL
         StoredPositionObject = ctypes.wintypes.WORD(8204)
         StoredPositionObjectSubindex = ctypes.c_uint8(1)
         StoredPositionNbBytesToRead = ctypes.wintypes.DWORD(4)
         ObjectData = ctypes.c_void_p()
-        ObjectDataArray = (ctypes.c_uint32*1)()
+        ObjectDataArray = (ctypes.c_uint32 * 1)()
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
         StoredPositionNbBytesRead = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead, ctypes.byref(buf))
+        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead,
+                                    ctypes.byref(buf))
         # Cast the object data to uint32
         CastedObjectData = ctypes.cast(ObjectData, ctypes.POINTER(ctypes.c_uint32))
         self._coefA = CastedObjectData[0]
 
         """Coefficient B"""
-        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetObject.restype = ctypes.wintypes.BOOL
         StoredPositionObject = ctypes.wintypes.WORD(8204)
         StoredPositionObjectSubindex = ctypes.c_uint8(2)
         StoredPositionNbBytesToRead = ctypes.wintypes.DWORD(4)
         ObjectData = ctypes.c_void_p()
-        ObjectDataArray = (ctypes.c_uint32*1)()
+        ObjectDataArray = (ctypes.c_uint32 * 1)()
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
         StoredPositionNbBytesRead = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead, ctypes.byref(buf))
+        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead,
+                                    ctypes.byref(buf))
         # Cast the object data to uint32
         CastedObjectData = ctypes.cast(ObjectData, ctypes.POINTER(ctypes.c_uint32))
         self._coefB = CastedObjectData[0]
 
         """Coefficient C"""
-        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetObject.restype = ctypes.wintypes.BOOL
         StoredPositionObject = ctypes.wintypes.WORD(8204)
         StoredPositionObjectSubindex = ctypes.c_uint8(3)
         StoredPositionNbBytesToRead = ctypes.wintypes.DWORD(4)
         ObjectData = ctypes.c_void_p()
-        ObjectDataArray = (ctypes.c_uint32*1)()
+        ObjectDataArray = (ctypes.c_uint32 * 1)()
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
         StoredPositionNbBytesRead = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead, ctypes.byref(buf))
+        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead,
+                                    ctypes.byref(buf))
         # Cast the object data to uint32
         CastedObjectData = ctypes.cast(ObjectData, ctypes.POINTER(ctypes.c_uint32))
         self._coefC = CastedObjectData[0]
 
         """Coefficient D"""
-        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetObject.restype = ctypes.wintypes.BOOL
         StoredPositionObject = ctypes.wintypes.WORD(8204)
         StoredPositionObjectSubindex = ctypes.c_uint8(4)
         StoredPositionNbBytesToRead = ctypes.wintypes.DWORD(4)
         ObjectData = ctypes.c_void_p()
-        ObjectDataArray = (ctypes.c_uint32*1)()
+        ObjectDataArray = (ctypes.c_uint32 * 1)()
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
         StoredPositionNbBytesRead = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead, ctypes.byref(buf))
+        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead,
+                                    ctypes.byref(buf))
         # Cast the object data to uint32
         CastedObjectData = ctypes.cast(ObjectData, ctypes.POINTER(ctypes.c_uint32))
         self._coefD = CastedObjectData[0]
@@ -231,35 +257,37 @@ class Sacher_EPOS():
         firstHalf = np.int16(self._coefD >> 16)
         secondHalf = np.int16(self._coefD & 0xffff)
         # Set the minimum and maximum wavelengths for the motor
-        self._minwl = float(firstHalf)/10.0
-        self._maxwl = float(secondHalf)/10.0
+        self._minwl = float(firstHalf) / 10.0
+        self._maxwl = float(secondHalf) / 10.0
         # print 'first %s second %s' % (firstHalf, secondHalf)
         # This returns '10871' and '11859' for the Sacher, which are the correct
         # wavelength ranges in Angstroms
-        #print 'Now calculate the current wavelength position:'
-        self._currentwl = self._doubleA*(self._offset)**2.0 + self._doubleB*self._offset + self._doubleC
-        #print('Current wavelength: %.3f nm' % self._currentwl)
+        # print 'Now calculate the current wavelength position:'
+        self._currentwl = self._doubleA * (self._offset) ** 2.0 + self._doubleB * self._offset + self._doubleC
+        # print('Current wavelength: %.3f nm' % self._currentwl)
         print('initializing done')
         print("")
         return True
 
-
-
-#4)
+    # 4)
     def get_offset(self):
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
-        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.c_void_p, ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetObject.restype = ctypes.wintypes.BOOL
-        #DC - These are hardcoded values I got from the LabVIEW program -- I don't think any documentation exists on particular object indices
+        # DC - These are hardcoded values I got from the LabVIEW program -- I don't think any documentation exists on particular object indices
         StoredPositionObject = ctypes.wintypes.WORD(8321)
         StoredPositionObjectSubindex = ctypes.c_uint8(0)
         StoredPositionNbBytesToRead = ctypes.wintypes.DWORD(4)
         ObjectData = ctypes.c_void_p()
-        ObjectDataArray = (ctypes.c_uint32*1)()
+        ObjectDataArray = (ctypes.c_uint32 * 1)()
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_int32))
         StoredPositionNbBytesRead = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead, ctypes.byref(buf))
+        ret = eposlib.VCS_GetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToRead, StoredPositionNbBytesRead,
+                                    ctypes.byref(buf))
         # Cast the object data to uint32
         CastedObjectData = ctypes.cast(ObjectData, ctypes.POINTER(ctypes.c_int32))
         if ret == 0:
@@ -267,24 +295,25 @@ class Sacher_EPOS():
         print('motor offset value is: %s' % CastedObjectData[0])
         return CastedObjectData[0]
 
-
-#5)
+    # 5)
     def get_motor_position(self):
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
         pPosition = ctypes.pointer(ctypes.c_long())
-        eposlib.VCS_GetPositionIs.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.POINTER(ctypes.c_long), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetPositionIs.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                              ctypes.POINTER(ctypes.c_long), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetPositionIs.restype = ctypes.wintypes.BOOL
         ret = eposlib.VCS_GetPositionIs(self._keyhandle, nodeID, pPosition, ctypes.byref(buf))
         print('motor position value is: %s' % pPosition.contents.value)
         return pPosition.contents.value
 
-#6)
+    # 6)
     def do_get_wavelength(self):
         self._offset = self.get_offset()
         self._motor_position = self.get_motor_position()
-        self._currentwl1 = self._doubleA*(self._offset)**2.0 + self._doubleB*self._offset + self._doubleC
-        self._currentwl2 = self._doubleA*(self._motor_position)**2.0 + self._doubleB*self._motor_position + self._doubleC
+        self._currentwl1 = self._doubleA * (self._offset) ** 2.0 + self._doubleB * self._offset + self._doubleC
+        self._currentwl2 = self._doubleA * (
+            self._motor_position) ** 2.0 + self._doubleB * self._motor_position + self._doubleC
         print('Current wavelength according to offset: %.3f nm' % self._currentwl1)
         print('Current wavelength according to motor position: %.3f nm' % self._currentwl2)
         return self._currentwl1
@@ -293,7 +322,7 @@ class Sacher_EPOS():
     And now we move on to setting things
     """
 
-#7)
+    # 7)
     def set_new_offset(self, new_offset):
         """
         This is NOT using the function "eposlib.VCS_MoveToPosition"
@@ -302,26 +331,32 @@ class Sacher_EPOS():
         """
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
-        eposlib.VCS_SetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_SetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_SetObject.restype = ctypes.wintypes.BOOL
         StoredPositionObject = ctypes.wintypes.WORD(8321)
         StoredPositionObjectSubindex = ctypes.c_uint8(0)
         StoredPositionNbBytesToWrite = ctypes.wintypes.DWORD(4)
-        ObjectDataArray = (ctypes.c_uint32*1)(new_offset)
+        ObjectDataArray = (ctypes.c_uint32 * 1)(new_offset)
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
         StoredPositionNbBytesWritten = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_SetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToWrite, StoredPositionNbBytesWritten, ctypes.byref(buf))
+        ret = eposlib.VCS_SetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToWrite, StoredPositionNbBytesWritten,
+                                    ctypes.byref(buf))
         if ret == 0:
             logging.error(__name__ + ' Could not write stored position from Sacher EPOS motor')
         return
 
-#8)
+    # 8)
     def set_coeffs(self, a, b, c, min_wl, max_wl):
         print('')
         print("setting coefficients...")
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
-        eposlib.VCS_SetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_SetObject.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.wintypes.WORD,
+                                          ctypes.c_uint8, ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.wintypes.DWORD,
+                                          ctypes.POINTER(ctypes.wintypes.DWORD), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_SetObject.restype = ctypes.wintypes.BOOL
         d = (min_wl << 16) + max_wl
         StoredPositionObject = ctypes.wintypes.WORD(8204)
@@ -330,17 +365,21 @@ class Sacher_EPOS():
             print(subidx, coeff)
             StoredPositionObjectSubindex = ctypes.c_uint8(subidx + 1)
             StoredPositionNbBytesToWrite = ctypes.wintypes.DWORD(4)
-            ObjectDataArray = (ctypes.c_uint32*1)(self._doubletou32(coeff))
+            ObjectDataArray = (ctypes.c_uint32 * 1)(self._doubletou32(coeff))
             ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
             StoredPositionNbBytesWritten = ctypes.pointer(ctypes.wintypes.DWORD(0))
-            ret = eposlib.VCS_SetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToWrite, StoredPositionNbBytesWritten, ctypes.byref(buf))
+            ret = eposlib.VCS_SetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                        ObjectData, StoredPositionNbBytesToWrite, StoredPositionNbBytesWritten,
+                                        ctypes.byref(buf))
 
         StoredPositionObjectSubindex = ctypes.c_uint8(4)
         StoredPositionNbBytesToWrite = ctypes.wintypes.DWORD(4)
-        ObjectDataArray = (ctypes.c_uint32*1)(d)
+        ObjectDataArray = (ctypes.c_uint32 * 1)(d)
         ObjectData = ctypes.cast(ObjectDataArray, ctypes.POINTER(ctypes.c_uint32))
         StoredPositionNbBytesWritten = ctypes.pointer(ctypes.wintypes.DWORD(0))
-        ret = eposlib.VCS_SetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex, ObjectData, StoredPositionNbBytesToWrite, StoredPositionNbBytesWritten, ctypes.byref(buf))
+        ret = eposlib.VCS_SetObject(self._keyhandle, nodeID, StoredPositionObject, StoredPositionObjectSubindex,
+                                    ObjectData, StoredPositionNbBytesToWrite, StoredPositionNbBytesWritten,
+                                    ctypes.byref(buf))
 
         print('Coefficients are %s %s %s' % (self._doubleA, self._doubleB, self._doubleC))
 
@@ -348,8 +387,7 @@ class Sacher_EPOS():
             logging.error(__name__ + ' Could not write stored position from Sacher EPOS motor')
         return
 
-
-#9)
+    # 9)
     def set_target_position(self, target, absolute, immediately):
         """
         This is the function that actually moves the motor
@@ -371,31 +409,34 @@ class Sacher_EPOS():
 
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
-        ret = eposlib.VCS_SetEnableState(self._keyhandle,nodeID,ctypes.byref(buf))
+        ret = eposlib.VCS_SetEnableState(self._keyhandle, nodeID, ctypes.byref(buf))
         pTarget = ctypes.c_long(target)
         pAbsolute = ctypes.wintypes.BOOL(absolute)
         pImmediately = ctypes.wintypes.BOOL(immediately)
-        eposlib.VCS_MoveToPosition.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.c_long, ctypes.wintypes.BOOL, ctypes.wintypes.BOOL, ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_MoveToPosition.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.c_long,
+                                               ctypes.wintypes.BOOL, ctypes.wintypes.BOOL,
+                                               ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_MoveToPosition.restype = ctypes.wintypes.BOOL
         ret = eposlib.VCS_MoveToPosition(self._keyhandle, nodeID, pTarget, pAbsolute, pImmediately, ctypes.byref(buf))
-        steps_per_second = 14494.0 # hardcoded, estimated roughly, unused now
+        steps_per_second = 14494.0  # hardcoded, estimated roughly, unused now
         nchecks = 0
         while nchecks < 1000:
             self._motor_position = self.get_motor_position()
             self._offset = self.get_offset()
             pMovementState = ctypes.pointer(ctypes.wintypes.BOOL())
-            eposlib.VCS_GetMovementState.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.POINTER(ctypes.wintypes.BOOL), ctypes.POINTER(ctypes.wintypes.DWORD)]
+            eposlib.VCS_GetMovementState.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                                     ctypes.POINTER(ctypes.wintypes.BOOL),
+                                                     ctypes.POINTER(ctypes.wintypes.DWORD)]
             eposlib.VCS_GetMovementState.restype = ctypes.wintypes.BOOL
             ret = eposlib.VCS_GetMovementState(self._keyhandle, nodeID, pMovementState, ctypes.byref(buf))
             if pMovementState.contents.value == 1:
                 break
             nchecks = nchecks + 1
             time.sleep(0.01)
-        ret = eposlib.VCS_SetDisableState(self._keyhandle,nodeID,ctypes.byref(buf))
+        ret = eposlib.VCS_SetDisableState(self._keyhandle, nodeID, ctypes.byref(buf))
         return ret
 
-
-#10)
+    # 10)
     def do_set_wavelength(self, wavelength):
         """
         Here's the basic procedure:
@@ -410,7 +451,8 @@ class Sacher_EPOS():
 
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
-        x = (-1.0*self._doubleB + np.sqrt(self._doubleB**2.0 - 4.0*self._doubleA*(self._doubleC - wavelength))) / (2.0*self._doubleA)
+        x = (-1.0 * self._doubleB + np.sqrt(
+            self._doubleB ** 2.0 - 4.0 * self._doubleA * (self._doubleC - wavelength))) / (2.0 * self._doubleA)
         wavelength_to_pos = int(round(x))
         diff_wavelength_offset = wavelength_to_pos - int(self._offset)
 
@@ -440,101 +482,54 @@ class Sacher_EPOS():
 
         return
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#11)
+    # 11)
     @staticmethod
     def get_bit(byteval, idx):
-    # def get_bit(self, byteval,idx):
-        return ((byteval&(1<< idx ))!=0)
+        # def get_bit(self, byteval,idx):
+        return ((byteval & (1 << idx)) != 0)
+
     """
     We take the two input numbers "byteval" and "idx" and do bitwise operations with them
     but it's not clear what the purpose of these bitwise operations are
     I also don't know what the @staticmethod decorator is supposed to be doing
     """
 
-#12)
+    # 12)
     @staticmethod
     def _u32todouble(uinput):
-    # def _u32todouble(self, uinput):
+        # def _u32todouble(self, uinput):
 
         # get sign of number
-        sign = Sacher_EPOS.get_bit(uinput,31)
+        sign = Sacher_EPOS.get_bit(uinput, 31)
         if sign == False:
             mantissa_sign = 1
         elif sign == True:
             mantissa_sign = -1
-        exp_mask =  0b111111
-        #print 'uin u is %d' % uinput
-        #print 'type uin %s' % type(uinput)
-        #print 'binary input is %s' % bin(long(uinput))
+        exp_mask = 0b111111
+        # print 'uin u is %d' % uinput
+        # print 'type uin %s' % type(uinput)
+        # print 'binary input is %s' % bin(long(uinput))
         # get sign of exponent
-        if Sacher_EPOS.get_bit(uinput,7) == False:
+        if Sacher_EPOS.get_bit(uinput, 7) == False:
             exp_sign = 1
-        elif Sacher_EPOS.get_bit(uinput,7) == True:
+        elif Sacher_EPOS.get_bit(uinput, 7) == True:
             exp_sign = -1
 
-        #print 'exp extract %s' % bin(int(uinput & exp_mask))
-        #print 'exp conv %s' % (exp_sign*int(uinput & exp_mask))
-        #print 'sign of exponent %s' % self.get_bit(uinput,7)
-        #print 'binary constant is %s' % bin(int(0b10000000000000000000000000000000))
+        # print 'exp extract %s' % bin(int(uinput & exp_mask))
+        # print 'exp conv %s' % (exp_sign*int(uinput & exp_mask))
+        # print 'sign of exponent %s' % self.get_bit(uinput,7)
+        # print 'binary constant is %s' % bin(int(0b10000000000000000000000000000000))
         mantissa_mask = 0b01111111111111111111111100000000
         # mantissa_mask = 0b0111111111111111111111110000000
 
-
-        #print 'mantissa extract is %s' % bin((uinput & mantissa_mask) >> 8)
-        mantissa = 1.0/1000000.0*float(mantissa_sign)*float((uinput & mantissa_mask) >> 8)
-        #print 'mantissa is %.12f' % mantissa
+        # print 'mantissa extract is %s' % bin((uinput & mantissa_mask) >> 8)
+        mantissa = 1.0 / 1000000.0 * float(mantissa_sign) * float((uinput & mantissa_mask) >> 8)
+        # print 'mantissa is %.12f' % mantissa
         # print(1 if Sacher_EPOS.get_bit(uinput,31) else 0, mantissa, 1 if Sacher_EPOS.get_bit(uinput,7) else 0, uinput & exp_mask)
-        output = mantissa*2.0**(float(exp_sign)*float(int(uinput & exp_mask)))
-        #print 'output is %s' % output
+        output = mantissa * 2.0 ** (float(exp_sign) * float(int(uinput & exp_mask)))
+        # print 'output is %s' % output
         return output
+
     """
     ok dc gave some slight explanations here
     This function implements the "really weird/non-standard U32 to floating point conversion in the sacher VIs"
@@ -544,7 +539,7 @@ class Sacher_EPOS():
     Also I'm seeing mantissas and masks, this is bad
     """
 
-#13)
+    # 13)
     @staticmethod
     def _doubletou32(dinput):
         mantissa_bit = 0 if int(dinput / abs(dinput)) > 0 else 1
@@ -569,17 +564,18 @@ class Sacher_EPOS():
     There might be a labview VI that does this correctly
     """
 
-#14)
+    # 14)
     def __del__(self):
         # execute disconnect
         self.close()
         return
+
     """
     this might be the only self explanatory one
     it disconnects
     """
 
-#15)
+    # 15)
     def close(self):
         print('closing EPOS motor.')
 
@@ -590,24 +586,25 @@ class Sacher_EPOS():
 
         ret = eposlib.VCS_CloseDevice(self._keyhandle, buf)
 
-        #print 'close device returned %s' % buf
+        # print 'close device returned %s' % buf
 
         if int(buf.contents.value) >= 0:
             self._is_open = False
         else:
             logging.error(__name__ + ' did not close Sacher EPOS motor correctly.')
         return
+
     """
     Apparently this closes the EPOS motor
     I don't know what "opening" and "closing" the motor means though
     and yeah also these random variables don't make any sense to me
     """
 
-
-#16)
+    # 16)
     def get_motor_current(self):
         nodeID = ctypes.wintypes.WORD(0)
-        eposlib.VCS_GetCurrentIs.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.POINTER(ctypes.c_uint8), ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_GetCurrentIs.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                             ctypes.POINTER(ctypes.c_uint8), ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_GetCurrentIs.restype = ctypes.wintypes.BOOL
 
         motorCurrent = ctypes.c_uint8(0)
@@ -619,11 +616,11 @@ class Sacher_EPOS():
     Not sure what this is doing yet
     """
 
-
-#17)
+    # 17)
     def find_home(self):
         nodeID = ctypes.wintypes.WORD(0)
-        eposlib.VCS_FindHome.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.c_uint8, ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_FindHome.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.c_uint8,
+                                         ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_FindHome.restype = ctypes.wintypes.BOOL
 
         buf = ctypes.wintypes.DWORD(0)
@@ -635,11 +632,11 @@ class Sacher_EPOS():
     Not sure what this is doing yet
     """
 
-
-#18)
+    # 18)
     def restore(self):
         nodeID = ctypes.wintypes.WORD(0)
-        eposlib.VCS_FindHome.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD, ctypes.POINTER(ctypes.wintypes.DWORD)]
+        eposlib.VCS_FindHome.argtypes = [ctypes.wintypes.HANDLE, ctypes.wintypes.WORD,
+                                         ctypes.POINTER(ctypes.wintypes.DWORD)]
         eposlib.VCS_FindHome.restype = ctypes.wintypes.BOOL
         buf = ctypes.wintypes.DWORD(0)
         ret = eposlib.VCS_Restore(self._keyhandle, nodeID, ctypes.byref(buf))
@@ -650,41 +647,38 @@ class Sacher_EPOS():
     Not sure what this is doing yet
     """
 
-
-
-#19)
+    # 19)
     def fine_tuning_steps(self, steps):
         current_motor_pos = self.get_motor_position()
         self._offset = self.get_offset()
         self.set_target_position(steps, False, True)
         new_motor_pos = self.get_motor_position()
-        #print('New motor position is %s' % new_motor_pos)
-        #print 'new offset is %s' % (new_motor_pos-current_motor_pos+self._offset)
-        self.set_new_offset(new_motor_pos-current_motor_pos+self._offset)
+        # print('New motor position is %s' % new_motor_pos)
+        # print 'new offset is %s' % (new_motor_pos-current_motor_pos+self._offset)
+        self.set_new_offset(new_motor_pos - current_motor_pos + self._offset)
 
     """
     Not sure what this is doing yet
     """
 
-#20)
+    # 20)
     def is_open(self):
         return self._is_open
 
-#21)
+    # 21)
     def clear_fault(self):
         nodeID = ctypes.wintypes.WORD(0)
         buf = ctypes.wintypes.DWORD(0)
-        ret = eposlib.VCS_ClearFault(self._keyhandle,nodeID,ctypes.byref(buf))
+        ret = eposlib.VCS_ClearFault(self._keyhandle, nodeID, ctypes.byref(buf))
         print('clear fault buf %s, ret %s' % (buf, ret))
         if ret == 0:
             errbuf = ctypes.create_string_buffer(64)
             eposlib.VCS_GetErrorInfo(buf, errbuf, WORD(64))
             raise ValueError(errbuf.value)
+
     """
     Not sure what this is doing yet
     """
-
-
 
 
 """

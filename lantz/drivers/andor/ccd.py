@@ -20,14 +20,12 @@
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import numpy as np
 import ctypes as ct
 from collections import namedtuple
 
-from lantz import Driver, Feat, Action, DictFeat
-from lantz import errors
-from lantz.foreign import LibraryDriver
-from lantz import Q_
+import numpy as np
+from lantz.core import Action, DictFeat, Feat, Q_, errors
+from lantz.core.foreign import LibraryDriver
 
 degC = Q_(1, 'degC')
 us = Q_(1, 'us')
@@ -120,7 +118,6 @@ _ERRORS = {
 
 
 class CCD(LibraryDriver):
-
     LIBRARY_NAME = 'atmcd64d.dll'
 
     def __init__(self, *args, **kwargs):
@@ -257,14 +254,14 @@ class CCD(LibraryDriver):
         this function is not required since that camera will be selected by
         default.
         """
-        n = ct.c_long()     # current camera handler
+        n = ct.c_long()  # current camera handler
         self.lib.GetCurrentCamera(ct.pointer(n))
         return n.value
 
     @current_camera.setter
     def current_camera(self, value):
         value = ct.c_long(value)
-        self.lib.SetCurrentCamera(value.value)    # needs camera handler
+        self.lib.SetCurrentCamera(value.value)  # needs camera handler
 
     @Feat(read_once=True)
     def idn(self):
@@ -644,7 +641,7 @@ class CCD(LibraryDriver):
 
     ### PHOTON COUNTING MODE
 
-    @Feat(values={True: 1, False: 0})   # FIXME: untested
+    @Feat(values={True: 1, False: 0})  # FIXME: untested
     def photon_counting_mode(self):
         """This function activates the photon counting option.
         """
@@ -667,7 +664,7 @@ class CCD(LibraryDriver):
         self.lib.GetNumberPhotonCountingDivisions(ct.pointer(inti))
         return inti.value
 
-    @Action()       # untested
+    @Action()  # untested
     def set_photon_counting_divs(self, n, thres):
         """This function sets the thresholds for the photon counting option.
         """
@@ -1050,7 +1047,7 @@ class CCD(LibraryDriver):
 
         return (first.value, last.value)
 
-    @Feat()     # TODO: test this
+    @Feat()  # TODO: test this
     def available_images_index(self):
         """This function will return information on the number of available
         images in the circular buffer. This information can be used with
@@ -1242,7 +1239,7 @@ class CCD(LibraryDriver):
         self.lib.GetMaximumNumberRingExposureTimes(ct.pointer(n))
         return n.value
 
-    def true_exposure_times(self, n):       # FIXME: bit order? something
+    def true_exposure_times(self, n):  # FIXME: bit order? something
         """This function will return the actual exposure times that the camera
         will use. There may be differences between requested exposures and the
         actual exposures.
@@ -1740,7 +1737,7 @@ class CCD(LibraryDriver):
 
     ### AUXPORT
 
-    @DictFeat(values={True: not(0), False: 0}, keys=list(range(1, 5)))
+    @DictFeat(values={True: not (0), False: 0}, keys=list(range(1, 5)))
     def in_aux_port(self, port):
         """This function returns the state of the TTL Auxiliary Input Port on
         the Andor plug-in card.
@@ -1868,6 +1865,7 @@ class CCD(LibraryDriver):
     def flush(self):
         self.lib.AT_Flush(self.AT_H)
 
+
 if __name__ == '__main__':
     from matplotlib import pyplot as plt
     from lantz import Q_
@@ -1879,14 +1877,13 @@ if __name__ == '__main__':
     s = Q_(1, 's')
 
     with CCD() as andor:
-
         print(andor.idn)
         andor.free_int_mem()
 
         # Acquisition settings
         andor.readout_mode = 'Image'
         andor.set_image()
-#        andor.acquisition_mode = 'Single Scan'
+        #        andor.acquisition_mode = 'Single Scan'
         andor.acquisition_mode = 'Run till abort'
         andor.set_exposure_time(0.03 * s)
         andor.trigger_mode = 'Internal'
@@ -1895,15 +1892,15 @@ if __name__ == '__main__':
         andor.vert_shift_speed = 0
         andor.shutter(0, 0, 0, 0, 0)
 
-#        # Temperature stabilization
-#        andor.temperature_setpoint = -30 * degC
-#        andor.cooler_on = True
-#        stable = 'Temperature has stabilized at set point.'
-#        print('Temperature set point =', andor.temperature_setpoint)
-#        while andor.temperature_status != stable:
-#            print("Current temperature:", np.round(andor.temperature, 1))
-#            time.sleep(30)
-#        print('Temperature has stabilized at set point')
+        #        # Temperature stabilization
+        #        andor.temperature_setpoint = -30 * degC
+        #        andor.cooler_on = True
+        #        stable = 'Temperature has stabilized at set point.'
+        #        print('Temperature set point =', andor.temperature_setpoint)
+        #        while andor.temperature_status != stable:
+        #            print("Current temperature:", np.round(andor.temperature, 1))
+        #            time.sleep(30)
+        #        print('Temperature has stabilized at set point')
 
         # Acquisition
         andor.start_acquisition()

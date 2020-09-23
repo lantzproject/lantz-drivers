@@ -5,9 +5,9 @@
 
 # Some sort of license information goes here.
 
-from lantz import Feat, Action, DictFeat
-from lantz.messagebased import MessageBasedDriver
 from time import sleep
+
+from lantz.core import Action, DictFeat, Feat, MessageBasedDriver
 
 
 class Lakeshore332(MessageBasedDriver):
