@@ -1056,7 +1056,7 @@ class Task(_Base):
 
         self.lib.SendSoftwareTrigger(triggerID)
 
-    @Feat(values=(str, _WHEN_WINDOW, None, None, None))
+    @Action(values=(str, _WHEN_WINDOW, None, None, None))
     def configure_analog_window_reference_trigger(self, source, when='entering', top=1.0, bottom=1.0,
                                                   pre_trigger_samps=0):
         """Configure the task to stop the acquisition when the device
