@@ -29,7 +29,7 @@ class LantzSignalGenerator(MessageBasedDriver):
     def idn(self):
         return self.query('?IDN')
 
-    @Feat(units='V', limits=(10,))
+    @Feat(units='V', limits=(0, 10))
     def amplitude(self):
         """Amplitude.
         """
