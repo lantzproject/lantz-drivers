@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import visa
+import pyvisa as visa
 from lantz.core import Driver
 from lantz.core.errors import LantzTimeoutError
 

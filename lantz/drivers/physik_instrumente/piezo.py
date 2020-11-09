@@ -45,7 +45,7 @@ class Piezo(MessageBasedDriver):
     Example:
     import numpy as np
     import lantz
-    import visa
+    import pyvisa as visa
     import lantz.drivers.physik_instrumente.piezo as physik_instrumente
     rm = visa.ResourceManager('@py')
     lantz.messagebased._resource_manager = rm
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     from lantz.ui.app import start_test_app
 
     import lantz
-    import visa
+    import pyvisa as visa
 
     rm = visa.ResourceManager('@py')
     lantz.messagebased._resource_manager = rm

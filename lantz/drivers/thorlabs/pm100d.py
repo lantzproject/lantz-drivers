@@ -3,7 +3,7 @@
 To connect the power meter you'll need to use the "Power meter driver switcher" application to switch to the PM100D (Ni-Visa) drivers.
 
 Then the resource name should show up when exceuting:
-import visa
+import pyvisa as visa
 visa.ResourceManager().list_resources()
 """
 
