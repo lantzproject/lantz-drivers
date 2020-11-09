@@ -79,7 +79,7 @@ class SMC100(MessageBasedDriver, MotionControllerMultiAxis):
     Example:
     import numpy as np
     import lantz
-    import visa
+    import pyvisa as visa
     import lantz.drivers.physik_instrumente.piezo as physik_instrumente
     from lantz.drivers.newport_motion import SMC100
     from pyvisa import constants
@@ -320,7 +320,7 @@ if __name__ == '__main__':
     lantz.log.log_to_socket(lantz.log.DEBUG)
 
     import lantz
-    import visa
+    import pyvisa as visa
     import lantz.drivers.newport_motion
 
     sm = lantz.drivers.newport_motion.SMC100
