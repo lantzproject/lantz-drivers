@@ -19,9 +19,8 @@ class DummyFunGen(Driver):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self._amplitude = ureg.volt
-        self._frequency = ureg.Hz
+        self._amplitude = 0.0
+        self._frequency = 1e3
 
     @Feat(units='Hz')
     def frequency(self):
@@ -31,7 +30,7 @@ class DummyFunGen(Driver):
     def frequency(self, value):
         self._frequency = value
 
-    @Feat(units='volt')
+    @Feat(units='V')
     def amplitude(self):
         return self._amplitude
 
@@ -46,8 +45,6 @@ class DummyOsci(Driver):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self._amplitude = ureg.volt
 
     @Action()
     def measure(self):
