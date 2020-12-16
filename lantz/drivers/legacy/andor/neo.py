@@ -57,7 +57,7 @@ class Neo(Andor):
         self.setenumstring("PixelReadoutRate", value)
 
     @Feat(None)
-    def fan_peed(self, value=1):
+    def fan_speed(self, value=1):
         """Fan speed.
         """
         self.setenumerated("FanSpeed", value)
