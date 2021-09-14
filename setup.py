@@ -23,7 +23,7 @@ companies = [path for path in paths
 
 setup(
     name='lantz-drivers',
-    version='0.6.0',
+    version='0.6.2',
     license='BSD 3-Clause License',
     description='Driver Library for Lantz',
     long_description=long_description,
